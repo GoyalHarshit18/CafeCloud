@@ -21,6 +21,14 @@ import { ReportsScreen } from '@/screens/ReportsScreen';
 
 const queryClient = new QueryClient();
 
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -34,7 +42,11 @@ const App = () => (
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<LoginPage />} />
 
-                <Route path="/pos" element={<POSPage />}>
+                <Route path="/pos" element={
+                  <ProtectedRoute>
+                    <POSPage />
+                  </ProtectedRoute>
+                }>
                   <Route index element={<Navigate to="dashboard" replace />} />
                   <Route path="dashboard" element={<DashboardScreen />} />
                   <Route path="floor" element={<FloorScreen />} />

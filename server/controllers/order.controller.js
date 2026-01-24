@@ -15,7 +15,6 @@ export const createOrder = async (req, res) => {
             status: 'running'
         });
 
-        // Update table status to occupied
         await Table.findByIdAndUpdate(tableId, { status: 'occupied' });
 
         res.status(201).json(order);

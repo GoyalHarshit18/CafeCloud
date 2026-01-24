@@ -53,10 +53,14 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [navigate]);
 
   const openSession = useCallback(() => {
+    const userStr = localStorage.getItem('user');
+    const user = userStr ? JSON.parse(userStr) : null;
+    const cashierName = user?.username || 'Staff User';
+
     setSession({
       id: `session-${Date.now()}`,
       openedAt: new Date(),
-      cashier: 'Staff User',
+      cashier: cashierName,
       openingBalance: 5000,
       totalSales: 0,
       ordersCount: 0,

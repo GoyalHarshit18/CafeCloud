@@ -22,6 +22,15 @@ import pizzaImage from '@/assets/pizza_wood_oven_1769246157679.png';
 
 export const Home = () => {
     const navigate = useNavigate();
+    const isAuthenticated = !!localStorage.getItem('token');
+
+    const handleAction = () => {
+        if (isAuthenticated) {
+            navigate('/pos');
+        } else {
+            navigate('/login');
+        }
+    };
 
     return (
         <div className="flex flex-col min-h-screen bg-background font-sans text-foreground">
@@ -37,12 +46,14 @@ export const Home = () => {
                     <div className="flex items-center gap-4">
                         <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground hidden sm:block">Features</a>
                         <a href="#roles" className="text-sm font-medium text-muted-foreground hover:text-foreground hidden sm:block">Explore Roles</a>
-                        <Button
-                            onClick={() => navigate('/login')}
-                            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6"
-                        >
-                            Login
-                        </Button>
+                        {!isAuthenticated && (
+                            <Button
+                                onClick={() => navigate('/login')}
+                                className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-6"
+                            >
+                                Login
+                            </Button>
+                        )}
                     </div>
                 </div>
             </nav>
@@ -76,10 +87,10 @@ export const Home = () => {
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <Button
                             size="lg"
-                            onClick={() => navigate('/login')}
+                            onClick={handleAction}
                             className="h-14 px-8 rounded-full text-lg bg-[#F97316] hover:bg-[#EA580C] text-white shadow-lg shadow-orange-500/20 hover:scale-105 transition-all duration-300"
                         >
-                            Explore POS <ArrowRight className="ml-2 w-5 h-5" />
+                            {isAuthenticated ? 'Go to Dashboard' : 'Explore POS'} <ArrowRight className="ml-2 w-5 h-5" />
                         </Button>
                         <Button
                             size="lg"
@@ -182,11 +193,11 @@ export const Home = () => {
                             </p>
                         </div>
                         <Button
-                            onClick={() => navigate('/login')}
+                            onClick={handleAction}
                             size="lg"
                             className="bg-background text-foreground hover:bg-background/90 rounded-full"
                         >
-                            Try It Now
+                            {isAuthenticated ? 'Open POS' : 'Try It Now'}
                         </Button>
                     </div>
 

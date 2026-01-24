@@ -4,7 +4,6 @@ export const openSession = async (req, res) => {
     try {
         const { branchId, openingBalance } = req.body;
 
-        // Check if there's already an open session for this user and branch
         const existingSession = await Session.findOne({
             user: req.user._id,
             branch: branchId,

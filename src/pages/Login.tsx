@@ -28,7 +28,13 @@ export const LoginPage = () => {
 
   useEffect(() => {
     setTheme('light');
-  }, [setTheme]);
+
+    // Check if user is already logged in
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/pos', { replace: true });
+    }
+  }, [setTheme, navigate]);
 
   const handleAuthRequest = async (e: React.FormEvent) => {
     e.preventDefault();

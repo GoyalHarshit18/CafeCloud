@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { usePOS } from '@/context/POSContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 // menuItems will be defined inside component to use translation
 
@@ -23,6 +24,14 @@ export const Sidebar = () => {
   const { t } = useLanguage();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    closeSession();
+    navigate('/login');
+  };
 
   const menuItems = [
     { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
@@ -81,15 +90,26 @@ export const Sidebar = () => {
           {!collapsed && <span className="font-medium">{t('settings')}</span>}
         </button>
 
+        <button
+          onClick={handleLogout}
+          className={cn(
+            'w-full flex items-center gap-3 px-3 py-3 rounded-xl',
+            'text-destructive hover:bg-destructive/10 transition-colors touch-btn'
+          )}
+        >
+          <LogOut className="w-5 h-5" />
+          {!collapsed && <span className="font-medium">Logout</span>}
+        </button>
+
         {session && (
           <button
             onClick={closeSession}
             className={cn(
               'w-full flex items-center gap-3 px-3 py-3 rounded-xl',
-              'text-destructive hover:bg-destructive/10 transition-colors touch-btn'
+              'text-orange-500 hover:bg-orange-50 transition-colors touch-btn'
             )}
           >
-            <LogOut className="w-5 h-5" />
+            <LogOut className="w-5 h-5 rotate-180" />
             {!collapsed && <span className="font-medium">{t('closeRegister')}</span>}
           </button>
         )}

@@ -2,7 +2,6 @@ import { usePOS } from '@/context/POSContext';
 import { Bell, User, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { useEffect, useState } from 'react';
-import { LanguageSwitcher } from '../LanguageSwitcher';
 import { ThemeToggle } from '../ThemeToggle';
 
 import { useLanguage } from '@/context/LanguageContext';
@@ -11,6 +10,10 @@ export const Header = () => {
   const { session, selectedTable } = usePOS();
   const { t } = useLanguage();
   const [time, setTime] = useState(new Date());
+
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const displayName = session?.cashier || user?.username || 'Staff User';
 
   useEffect(() => {
     const interval = setInterval(() => setTime(new Date()), 1000);
@@ -44,7 +47,6 @@ export const Header = () => {
         </div>
 
         <ThemeToggle />
-        <LanguageSwitcher />
 
         <button className="relative p-2 hover:bg-accent rounded-lg transition-colors">
           <Bell className="w-5 h-5 text-muted-foreground" />
@@ -55,7 +57,7 @@ export const Header = () => {
           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
             <User className="w-4 h-4 text-primary-foreground" />
           </div>
-          <span className="hidden lg:block text-sm font-medium">Staff User</span>
+          <span className="hidden lg:block text-sm font-medium">{displayName}</span>
         </button>
       </div>
     </header>
