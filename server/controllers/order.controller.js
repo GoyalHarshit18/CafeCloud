@@ -1,24 +1,40 @@
 import Order from '../models/Order.js';
+import OrderItem from '../models/OrderItem.js';
 import Table from '../models/Table.js';
+import sequelize from '../config/db.js';
 
 export const createOrder = async (req, res) => {
+    const transaction = await sequelize.transaction();
     try {
         const { tableId, sessionId, items, subtotal, tax, total } = req.body;
 
         const order = await Order.create({
-            table: tableId,
-            session: sessionId,
-            items,
+            tableId,
+            sessionId,
             subtotal,
             tax,
             total,
             status: 'running'
+        }, { transaction });
+
+        const orderItems = items.map(item => ({
+            orderId: order.id,
+            productId: item.product,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity
+        }));
+
+        await OrderItem.bulkCreate(orderItems, { transaction });
+        await Table.update({ status: 'occupied' }, {
+            where: { id: tableId },
+            transaction
         });
 
-        await Table.findByIdAndUpdate(tableId, { status: 'occupied' });
-
+        await transaction.commit();
         res.status(201).json(order);
     } catch (error) {
+        await transaction.rollback();
         res.status(500).json({ message: error.message });
     }
 };
@@ -26,7 +42,8 @@ export const createOrder = async (req, res) => {
 export const updateOrder = async (req, res) => {
     try {
         const { orderId } = req.params;
-        const order = await Order.findByIdAndUpdate(orderId, req.body, { new: true });
+        await Order.update(req.body, { where: { id: orderId } });
+        const order = await Order.findByPk(orderId);
         res.status(200).json(order);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -36,7 +53,10 @@ export const updateOrder = async (req, res) => {
 export const getOrderByTable = async (req, res) => {
     try {
         const { tableId } = req.params;
-        const order = await Order.findOne({ table: tableId, status: 'running' });
+        const order = await Order.findOne({
+            where: { tableId, status: 'running' },
+            include: [{ model: OrderItem, as: 'items' }]
+        });
         if (!order) {
             return res.status(404).json({ message: 'No running order for this table' });
         }
@@ -47,25 +67,30 @@ export const getOrderByTable = async (req, res) => {
 };
 
 export const processPayment = async (req, res) => {
+    const transaction = await sequelize.transaction();
     try {
         const { orderId } = req.params;
         const { paymentMethod } = req.body;
 
-        const order = await Order.findByIdAndUpdate(
-            orderId,
-            {
-                status: 'paid',
-                paymentMethod,
-                paidAt: Date.now()
-            },
-            { new: true }
-        );
+        const order = await Order.findByPk(orderId, { transaction });
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
 
-        // Update table status back to free
-        await Table.findByIdAndUpdate(order.table, { status: 'free' });
+        order.status = 'paid';
+        order.paymentMethod = paymentMethod;
+        order.paidAt = new Date();
+        await order.save({ transaction });
 
+        await Table.update({ status: 'free' }, {
+            where: { id: order.tableId },
+            transaction
+        });
+
+        await transaction.commit();
         res.status(200).json(order);
     } catch (error) {
+        await transaction.rollback();
         res.status(500).json({ message: error.message });
     }
 };

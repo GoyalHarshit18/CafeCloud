@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePOS } from '@/context/POSContext';
 import { TableCard } from '@/components/pos/TableCard';
 import { Button } from '@/components/ui/button';
@@ -7,11 +7,25 @@ import { cn } from '@/lib/utils';
 
 export const FloorScreen = () => {
   const { floors, session, selectTable, setCurrentScreen, openSession } = usePOS();
-  const [selectedFloor, setSelectedFloor] = useState(floors[0].id);
+  const [selectedFloor, setSelectedFloor] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (floors.length > 0 && !selectedFloor) {
+      setSelectedFloor(floors[0].id);
+    }
+  }, [floors, selectedFloor]);
+
+  if (floors.length === 0 || !selectedFloor) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   const currentFloor = floors.find((f) => f.id === selectedFloor)!;
-  
+
   const filteredTables = statusFilter
     ? currentFloor.tables.filter((t) => t.status === statusFilter)
     : currentFloor.tables;
@@ -27,7 +41,6 @@ export const FloorScreen = () => {
   const statusCounts = {
     free: currentFloor.tables.filter(t => t.status === 'free').length,
     occupied: currentFloor.tables.filter(t => t.status === 'occupied').length,
-    pending: currentFloor.tables.filter(t => t.status === 'pending').length,
   };
 
   return (
@@ -92,15 +105,7 @@ export const FloorScreen = () => {
         >
           🟡 Occupied ({statusCounts.occupied})
         </button>
-        <button
-          onClick={() => setStatusFilter('pending')}
-          className={cn(
-            'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
-            statusFilter === 'pending' ? 'bg-status-pending text-white' : 'bg-status-pending-bg text-status-pending hover:bg-status-pending/20'
-          )}
-        >
-          🔴 Payment Due ({statusCounts.pending})
-        </button>
+
       </div>
 
       {/* Tables Grid */}
@@ -133,10 +138,7 @@ export const FloorScreen = () => {
             <span className="w-3 h-3 rounded-full bg-status-occupied" />
             <span className="text-sm">Occupied - Order in progress</span>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-status-pending" />
-            <span className="text-sm">Payment Due - Awaiting payment</span>
-          </div>
+
         </div>
       </div>
     </div>

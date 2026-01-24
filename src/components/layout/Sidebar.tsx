@@ -17,8 +17,6 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// menuItems will be defined inside component to use translation
-
 export const Sidebar = () => {
   const { currentScreen, setCurrentScreen, session, closeSession } = usePOS();
   const { t } = useLanguage();
@@ -101,18 +99,7 @@ export const Sidebar = () => {
           {!collapsed && <span className="font-medium">Logout</span>}
         </button>
 
-        {session && (
-          <button
-            onClick={closeSession}
-            className={cn(
-              'w-full flex items-center gap-3 px-3 py-3 rounded-xl',
-              'text-orange-500 hover:bg-orange-50 transition-colors touch-btn'
-            )}
-          >
-            <LogOut className="w-5 h-5 rotate-180" />
-            {!collapsed && <span className="font-medium">{t('closeRegister')}</span>}
-          </button>
-        )}
+
       </div>
     </>
   );

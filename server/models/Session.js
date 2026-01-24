@@ -1,13 +1,57 @@
-import mongoose from 'mongoose';
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+import User from './User.js';
+import Branch from './Branch.js';
 
-const sessionSchema = new mongoose.Schema({
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    branch: { type: mongoose.Schema.Types.ObjectId, ref: 'Branch', required: true },
-    startTime: { type: Date, default: Date.now },
-    endTime: { type: Date },
-    openingBalance: { type: Number, default: 0 },
-    closingBalance: { type: Number },
-    status: { type: String, enum: ['open', 'closed'], default: 'open' }
-}, { timestamps: true });
+const Session = sequelize.define('Session', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
+    userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: User,
+            key: 'id'
+        }
+    },
+    branchId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: Branch,
+            key: 'id'
+        }
+    },
+    startTime: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW
+    },
+    endTime: {
+        type: DataTypes.DATE
+    },
+    openingBalance: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0.00
+    },
+    closingBalance: {
+        type: DataTypes.DECIMAL(10, 2)
+    },
+    status: {
+        type: DataTypes.ENUM('open', 'closed'),
+        defaultValue: 'open'
+    }
+}, {
+    timestamps: true,
+    tableName: 'sessions'
+});
 
-export default mongoose.model('Session', sessionSchema);
+User.hasMany(Session, { foreignKey: 'userId' });
+Session.belongsTo(User, { foreignKey: 'userId' });
+
+Branch.hasMany(Session, { foreignKey: 'branchId' });
+Session.belongsTo(Branch, { foreignKey: 'branchId' });
+
+export default Session;

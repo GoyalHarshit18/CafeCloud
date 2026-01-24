@@ -3,7 +3,7 @@ import { usePOS } from '@/context/POSContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { ProductCard } from '@/components/pos/ProductCard';
 import { OrderItemRow } from '@/components/pos/OrderItemRow';
-import { products, categories } from '@/data/products';
+import { categories } from '@/data/products';
 import { Button } from '@/components/ui/button';
 import {
   ShoppingBag,
@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export const OrderScreen = () => {
   const {
+    products,
     selectedTable,
     currentOrder,
     addToOrder,
@@ -48,24 +49,7 @@ export const OrderScreen = () => {
   // Temporary fix to update the "All" category label dynamically if needed
   // Alternatively, handle rendering logic in the map below
 
-  const handleSendToKitchen = () => {
-    if (!selectedTable) {
-      toast({
-        title: 'No table selected',
-        description: 'Please select a table first',
-        variant: 'destructive',
-      });
-      setCurrentScreen('floor');
-      return;
-    }
 
-    sendToKitchen();
-    toast({
-      title: 'Order sent to kitchen!',
-      description: `Order for Table ${selectedTable.number} is being prepared`,
-    });
-    updateTableStatus(selectedTable.id, 'occupied');
-  };
 
   const handleProceedToPayment = () => {
     if (!selectedTable) {
@@ -86,7 +70,9 @@ export const OrderScreen = () => {
       return;
     }
 
-    updateTableStatus(selectedTable.id, 'pending');
+    // Automatically send to kitchen when proceeding to payment
+    sendToKitchen();
+
     setCurrentScreen('payment');
   };
 
@@ -181,7 +167,6 @@ export const OrderScreen = () => {
           clearOrder={clearOrder}
           total={total}
           itemCount={itemCount}
-          onSendToKitchen={handleSendToKitchen}
           onProceedToPayment={handleProceedToPayment}
           selectedTable={selectedTable}
         />
@@ -208,10 +193,6 @@ export const OrderScreen = () => {
                 clearOrder={clearOrder}
                 total={total}
                 itemCount={itemCount}
-                onSendToKitchen={() => {
-                  handleSendToKitchen();
-                  setShowCart(false);
-                }}
                 onProceedToPayment={() => {
                   handleProceedToPayment();
                   setShowCart(false);
@@ -233,7 +214,6 @@ interface CartContentProps {
   clearOrder: () => void;
   total: number;
   itemCount: number;
-  onSendToKitchen: () => void;
   onProceedToPayment: () => void;
   selectedTable: any;
 }
@@ -245,7 +225,6 @@ const CartContent = ({
   clearOrder,
   total,
   itemCount,
-  onSendToKitchen,
   onProceedToPayment,
   selectedTable,
 }: CartContentProps) => {
@@ -312,21 +291,13 @@ const CartContent = ({
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <Button
-            onClick={onSendToKitchen}
-            disabled={itemCount === 0}
-            variant="outline"
-            className="touch-btn"
-          >
-            <Send className="w-4 h-4 mr-2" />
-            {t('sendToKitchen')}
-          </Button>
+
           <Button
             onClick={onProceedToPayment}
             disabled={itemCount === 0}
-            className="touch-btn"
+            className="w-full h-12 text-base font-bold shadow-lg shadow-primary/20 active:scale-[0.98] transition-all touch-btn"
           >
-            <CreditCard className="w-4 h-4 mr-2" />
+            <CreditCard className="w-5 h-5 mr-2" />
             {t('payment')}
           </Button>
         </div>

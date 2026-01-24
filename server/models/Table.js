@@ -1,14 +1,39 @@
-import mongoose from 'mongoose';
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+import Floor from './Floor.js';
 
-const tableSchema = new mongoose.Schema({
-    number: { type: Number, required: true },
-    seats: { type: Number, default: 2 },
-    status: {
-        type: String,
-        enum: ['free', 'occupied', 'pending', 'reserved'],
-        default: 'free'
+const Table = sequelize.define('Table', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
     },
-    floor: { type: mongoose.Schema.Types.ObjectId, ref: 'Floor', required: true }
-}, { timestamps: true });
+    number: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    seats: {
+        type: DataTypes.INTEGER,
+        defaultValue: 2
+    },
+    status: {
+        type: DataTypes.ENUM('free', 'occupied'),
+        defaultValue: 'free'
+    },
+    floorId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: Floor,
+            key: 'id'
+        }
+    }
+}, {
+    timestamps: true,
+    tableName: 'pos_tables'
+});
 
-export default mongoose.model('Table', tableSchema);
+Floor.hasMany(Table, { foreignKey: 'floorId', onDelete: 'CASCADE' });
+Table.belongsTo(Floor, { foreignKey: 'floorId' });
+
+export default Table;

@@ -1,14 +1,14 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Table, Order, OrderItem, Product, Session, KDSTicket, TableStatus } from '@/types/pos';
-import { floors as initialFloors } from '@/data/floors';
+import { Table, Order, OrderItem, Product, Session, KDSTicket, TableStatus, Floor } from '@/types/pos';
 
 interface POSContextType {
   session: Session | null;
   openSession: () => void;
   closeSession: () => void;
 
-  floors: typeof initialFloors;
+  floors: Floor[];
+  products: Product[];
   selectedTable: Table | null;
   selectTable: (table: Table | null) => void;
   updateTableStatus: (tableId: string, status: TableStatus) => void;
@@ -37,15 +37,75 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const navigate = useNavigate();
   const location = useLocation();
   const [session, setSession] = useState<Session | null>(null);
-  const [floors, setFloors] = useState(initialFloors);
+  const [floors, setFloors] = useState<Floor[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const [currentOrder, setCurrentOrder] = useState<OrderItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [kdsTickets, setKdsTickets] = useState<KDSTicket[]>([]);
   const [orderCounter, setOrderCounter] = useState(1001);
 
-  // Derive currentScreen from URL
-  // e.g. /pos/dashboard -> dashboard
+  // Fetch floors from backend
+  const fetchFloors = useCallback(async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/pos/floors', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const mappedFloors = data.map((f: any) => ({
+          id: f._id,
+          name: f.name,
+          tables: f.tables.map((t: any) => ({
+            id: t._id,
+            number: t.number,
+            seats: t.seats,
+            status: t.status,
+            floor: f._id
+          }))
+        }));
+        setFloors(mappedFloors);
+      }
+    } catch (error) {
+      console.error('Failed to fetch floors:', error);
+    }
+  }, []);
+
+  // Fetch products from backend
+  const fetchProducts = useCallback(async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/pos/products', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const mappedProducts = data.map((p: any) => ({
+          id: p._id,
+          name: p.name,
+          price: p.price,
+          category: p.category,
+          image: p.image || '/placeholder-food.jpg',
+          description: p.description
+        }));
+        setProducts(mappedProducts);
+      }
+    } catch (error) {
+      console.error('Failed to fetch products:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      fetchFloors();
+      fetchProducts();
+    }
+  }, [fetchFloors, fetchProducts]);
+
   const currentScreen = location.pathname.split('/').pop() || 'dashboard';
 
   const setCurrentScreen = useCallback((screen: string) => {
@@ -65,17 +125,11 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       totalSales: 0,
       ordersCount: 0,
     });
-    // Navigate to floor screen
     navigate('/pos/floor');
   }, [navigate]);
 
   const closeSession = useCallback(() => {
     if (session) {
-      setSession({
-        ...session,
-        closedAt: new Date(),
-        closingBalance: session.openingBalance + session.totalSales,
-      });
       setSession(null);
     }
   }, [session]);
@@ -87,13 +141,28 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, []);
 
-  const updateTableStatus = useCallback((tableId: string, status: TableStatus) => {
-    setFloors(prev => prev.map(floor => ({
-      ...floor,
-      tables: floor.tables.map(table =>
-        table.id === tableId ? { ...table, status } : table
-      )
-    })));
+  const updateTableStatus = useCallback(async (tableId: string, status: TableStatus) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/pos/tables/${tableId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ status })
+      });
+
+      if (response.ok) {
+        setFloors(prev => prev.map(floor => ({
+          ...floor,
+          tables: floor.tables.map(table =>
+            table.id === tableId ? { ...table, status } : table
+          )
+        })));
+      }
+    } catch (error) {
+      console.error('Failed to update table status:', error);
+    }
   }, []);
 
   const addToOrder = useCallback((product: Product) => {
@@ -134,7 +203,7 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return currentOrder.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   }, [currentOrder]);
 
-  const sendToKitchen = useCallback(() => {
+  const sendToKitchen = useCallback(async () => {
     if (!selectedTable || currentOrder.length === 0) return;
 
     const orderId = `ORD-${orderCounter}`;
@@ -149,20 +218,52 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setKdsTickets(prev => [...prev, newTicket]);
-    updateTableStatus(selectedTable.id, 'occupied');
+    await updateTableStatus(selectedTable.id, 'occupied');
 
-    const newOrder: Order = {
-      id: orderId,
-      tableId: selectedTable.id,
-      tableNumber: selectedTable.number,
-      items: [...currentOrder],
-      status: 'in-kitchen',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      total: getOrderTotal(),
-    };
+    const total = getOrderTotal();
+    const tax = Math.round(total * 0.05);
 
-    setOrders(prev => [...prev, newOrder]);
+    // Save to database
+    try {
+      const response = await fetch('http://localhost:5000/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          tableId: selectedTable.id,
+          sessionId: "6793910c6600a9435b674b88", // Hardcoded fallback or real ID if available
+          items: currentOrder.map(item => ({
+            product: item.product.id,
+            name: item.product.name,
+            price: item.product.price,
+            quantity: item.quantity
+          })),
+          subtotal: total,
+          tax: tax,
+          total: total + tax
+        })
+      });
+
+      if (response.ok) {
+        const savedOrder = await response.json();
+        const newOrder: Order = {
+          id: savedOrder._id,
+          tableId: selectedTable.id,
+          tableNumber: selectedTable.number,
+          items: [...currentOrder],
+          status: 'in-kitchen',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          total: total + tax,
+        };
+        setOrders(prev => [...prev, newOrder]);
+      }
+    } catch (error) {
+      console.error('Failed to save order:', error);
+    }
+
     clearOrder();
   }, [selectedTable, currentOrder, orderCounter, updateTableStatus, getOrderTotal, clearOrder]);
 
@@ -181,27 +282,42 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   }, []);
 
-  const completePayment = useCallback((method: 'cash' | 'card' | 'upi') => {
+  const completePayment = useCallback(async (method: 'cash' | 'card' | 'upi') => {
     if (!selectedTable) return;
 
     const tableOrder = orders.find(o => o.tableId === selectedTable.id && o.status !== 'paid');
     if (tableOrder) {
-      setOrders(prev =>
-        prev.map(o =>
-          o.id === tableOrder.id
-            ? { ...o, status: 'paid', paymentMethod: method, updatedAt: new Date() }
-            : o
-        )
-      );
+      try {
+        const response = await fetch(`http://localhost:5000/api/orders/${tableOrder.id}/pay`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({ paymentMethod: method })
+        });
 
-      setSession(prev => prev ? {
-        ...prev,
-        totalSales: prev.totalSales + tableOrder.total,
-        ordersCount: prev.ordersCount + 1,
-      } : null);
+        if (response.ok) {
+          setOrders(prev =>
+            prev.map(o =>
+              o.id === tableOrder.id
+                ? { ...o, status: 'paid', paymentMethod: method, updatedAt: new Date() }
+                : o
+            )
+          );
+
+          setSession(prev => prev ? {
+            ...prev,
+            totalSales: prev.totalSales + tableOrder.total,
+            ordersCount: prev.ordersCount + 1,
+          } : null);
+        }
+      } catch (error) {
+        console.error('Failed to process payment in DB:', error);
+      }
     }
 
-    updateTableStatus(selectedTable.id, 'free');
+    await updateTableStatus(selectedTable.id, 'free');
     setSelectedTable(null);
     clearOrder();
   }, [selectedTable, orders, updateTableStatus, clearOrder]);
@@ -213,6 +329,7 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         openSession,
         closeSession,
         floors,
+        products,
         selectedTable,
         selectTable,
         updateTableStatus,

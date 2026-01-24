@@ -72,32 +72,51 @@ export const PaymentScreen = () => {
   };
 
   if (paymentState === 'upi-qr') {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
-        <div className="pos-card p-8 max-w-sm w-full animate-fade-in">
-          <h2 className="text-xl font-bold mb-2">UPI {t('payment')}</h2>
-          <p className="text-muted-foreground mb-6">Scan QR code to pay</p>
+    // Generate a simple UPI URL for the QR placeholder
+    const upiUrl = `upi://pay?pa=merchant@upi&pn=OdooCafe&am=${totalWithTax}&cu=INR`;
 
-          <div className="bg-white p-4 rounded-2xl mb-4">
-            <div className="w-48 h-48 mx-auto bg-foreground/5 rounded-xl flex items-center justify-center">
-              <QrCode className="w-32 h-32 text-foreground" />
+    return (
+      <div className="fixed inset-0 z-[60] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300">
+        <div className="pos-card p-8 max-w-sm w-full shadow-2xl border-2 border-primary/10 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1.5 bg-primary animate-pulse" />
+
+          <h2 className="text-2xl font-bold mb-1 text-center">Scan & Pay</h2>
+          <p className="text-muted-foreground mb-6 text-center text-sm">Odoo Cafe - Table {selectedTable?.number}</p>
+
+          <div className="bg-white p-6 rounded-3xl mb-6 shadow-inner flex flex-col items-center">
+            <div className="w-56 h-56 bg-foreground/5 rounded-2xl flex items-center justify-center border-2 border-dashed border-primary/20 relative group">
+              <QrCode className="w-40 h-40 text-foreground transition-transform duration-300 group-hover:scale-95" />
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-white/40 backdrop-blur-[2px]">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-primary bg-white px-2 py-1 rounded-full shadow-sm">Secure Transfer</span>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center gap-3 opacity-60">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo.png" alt="UPI" className="h-4 object-contain" />
+              <div className="h-4 w-[1px] bg-border" />
+              <span className="text-[10px] font-semibold uppercase tracking-tighter">Powered by BHIM</span>
             </div>
           </div>
 
-          <p className="text-3xl font-bold text-primary mb-6">₹{totalWithTax}</p>
+          <div className="text-center mb-8">
+            <p className="text-sm text-muted-foreground uppercase tracking-widest font-bold mb-1">Amount to pay</p>
+            <p className="text-5xl font-black text-primary">₹{totalWithTax}</p>
+          </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <Button
               variant="outline"
               onClick={() => setPaymentState('select')}
-              className="touch-btn"
+              className="h-12 rounded-xl hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30 transition-all"
             >
               <X className="w-4 h-4 mr-2" />
               {t('cancel')}
             </Button>
-            <Button onClick={handleUPIConfirm} className="touch-btn">
+            <Button
+              onClick={handleUPIConfirm}
+              className="h-12 rounded-xl bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all font-bold"
+            >
               <CheckCircle className="w-4 h-4 mr-2" />
-              {t('confirmPayment')}
+              Confirm
             </Button>
           </div>
         </div>
@@ -107,23 +126,48 @@ export const PaymentScreen = () => {
 
   if (paymentState === 'processing') {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center animate-fade-in">
-        <Loader2 className="w-16 h-16 text-primary animate-spin mb-4" />
-        <h2 className="text-xl font-bold mb-2">{t('processing')}</h2>
-        <p className="text-muted-foreground">{t('loading')}</p>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center animate-in fade-in duration-500">
+        <div className="relative mb-8">
+          <div className="absolute inset-0 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+          <Loader2 className="w-20 h-20 text-primary animate-spin relative z-10" />
+        </div>
+        <h2 className="text-2xl font-bold mb-2 tracking-tight">{t('processing')}...</h2>
+        <p className="text-muted-foreground max-w-[200px] mx-auto text-sm">Authenticating your secure payment transaction</p>
       </div>
     );
   }
 
   if (paymentState === 'success') {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center animate-fade-in">
-        <div className="w-24 h-24 rounded-full bg-status-free/20 flex items-center justify-center mb-4 animate-bounce-subtle">
-          <CheckCircle className="w-12 h-12 text-status-free" />
+      <div className="fixed inset-0 z-[100] bg-white flex flex-center animate-in fade-in zoom-in-95 duration-500 overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          style={{ backgroundImage: 'radial-gradient(circle, #22c55e 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
+
+        <div className="flex flex-col items-center justify-center text-center p-6 max-w-md w-full relative">
+          {/* Success Animation */}
+          <div className="w-32 h-32 rounded-full bg-status-free/10 flex items-center justify-center mb-8 relative">
+            <div className="absolute inset-0 rounded-full border-4 border-status-free animate-ping opacity-20" />
+            <CheckCircle className="w-16 h-16 text-status-free animate-bounce-subtle" />
+          </div>
+
+          <h1 className="text-4xl font-black text-foreground mb-4 tracking-tighter uppercase italic">
+            Successful Payment
+          </h1>
+
+          <div className="pos-card py-4 px-8 border-status-free/20 bg-status-free/5 mb-8">
+            <p className="text-sm text-status-free font-bold uppercase tracking-widest mb-1">Total Received</p>
+            <p className="text-4xl font-black text-status-free">₹{totalWithTax}</p>
+          </div>
+
+          <div className="space-y-2 text-muted-foreground">
+            <p className="font-medium">Table {selectedTable?.number} is now available</p>
+            <p className="text-xs opacity-60">Redirecting to floor view in a few seconds...</p>
+          </div>
+
+          {/* Lottie-like particles (simple div imitation) */}
+          <div className="absolute -top-10 -left-10 w-20 h-20 bg-status-free/10 rounded-full blur-2xl animate-pulse" />
+          <div className="absolute -bottom-10 -right-10 w-20 h-20 bg-primary/10 rounded-full blur-2xl animate-pulse delay-700" />
         </div>
-        <h2 className="text-2xl font-bold mb-2">{t('paymentSuccess')}</h2>
-        <p className="text-muted-foreground mb-2">₹{totalWithTax} received</p>
-        <p className="text-sm text-muted-foreground">Returning to floor view...</p>
       </div>
     );
   }

@@ -19,8 +19,6 @@ export const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [otp, setOtp] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -41,55 +39,24 @@ export const LoginPage = () => {
     setIsLoading(true);
 
     try {
+      let data;
       if (isLogin) {
-        // Step 1: Login Request
-        const data = await authApi.login({ email, password });
-        toast({
-          title: 'OTP Sent!',
-          description: data.message,
-        });
-        setIsVerifying(true);
+        // Direct Login
+        data = await authApi.login({ email, password });
       } else {
-        // Step 1: Signup Request
-        const data = await authApi.register({
+        // Direct Signup
+        data = await authApi.register({
           username: name,
           email,
           password,
           role: 'cashier',
         });
-        toast({
-          title: 'Account Created & OTP Sent!',
-          description: data.message,
-        });
-        setIsVerifying(true);
-      }
-    } catch (error: any) {
-      toast({
-        title: 'Authentication Error',
-        description: error.message || 'Something went wrong. Please try again.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    try {
-      let data;
-      if (isLogin) {
-        data = await authApi.verifyLogin({ email, otp });
-      } else {
-        data = await authApi.verifySignup({ email, otp });
       }
 
       // Store token and user info
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify({
-        _id: data._id,
+        id: data._id,
         username: data.username,
         email: data.email,
         role: data.role
@@ -97,14 +64,14 @@ export const LoginPage = () => {
 
       toast({
         title: 'Success!',
-        description: 'You have been authenticated successfully.',
+        description: isLogin ? 'Successfully logged in.' : 'Account created successfully.',
       });
 
       navigate('/pos');
     } catch (error: any) {
       toast({
-        title: 'Verification Failed',
-        description: error.message || 'Invalid OTP. Please try again.',
+        title: 'Authentication Error',
+        description: error.message || 'Something went wrong. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -129,144 +96,93 @@ export const LoginPage = () => {
 
           <div className="mb-8">
             <h2 className="text-3xl font-bold text-foreground mb-2">
-              {isVerifying ? 'Verify OTP' : isLogin ? 'Welcome back' : 'Create account'}
+              {isLogin ? 'Welcome back' : 'Create account'}
             </h2>
             <p className="text-muted-foreground">
-              {isVerifying
-                ? `Enter the 6-digit code sent to ${email}`
-                : isLogin
-                  ? 'Enter your credentials to access the POS system'
-                  : 'Register to start using Odoo Cafe'}
+              {isLogin
+                ? 'Enter your credentials to access the POS system'
+                : 'Register to start using Odoo Cafe'}
             </p>
           </div>
 
-          {!isVerifying ? (
-            <form onSubmit={handleAuthRequest} className="space-y-5">
-              {!isLogin && (
-                <div className="space-y-2 animate-fade-in">
-                  <label className="text-sm font-medium text-foreground">Full Name</label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      type="text"
-                      placeholder="John Doe"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="pl-10 h-12"
-                      required
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Email</label>
+          <form onSubmit={handleAuthRequest} className="space-y-5">
+            {!isLogin && (
+              <div className="space-y-2 animate-fade-in">
+                <label className="text-sm font-medium text-foreground">Full Name</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
-                    type="email"
-                    placeholder="staff@odoocafe.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="text"
+                    placeholder="John Doe"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     className="pl-10 h-12"
                     required
                   />
                 </div>
               </div>
+            )}
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Password</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 h-12"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  type="email"
+                  placeholder="staff@odoocafe.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10 h-12"
+                  required
+                />
               </div>
+            </div>
 
-              <Button
-                type="submit"
-                className="w-full h-12 text-base touch-btn"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Processing...' : (
-                  <>
-                    {isLogin ? 'Sign In' : 'Create Account'}
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </>
-                )}
-              </Button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyOtp} className="space-y-5 animate-fade-in">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground">Verification Code (6-digits)</label>
-                <div className="relative">
-                  <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="123456"
-                    maxLength={6}
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
-                    className="pl-10 h-12 text-center text-xl tracking-widest font-bold"
-                    required
-                  />
-                </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10 pr-10 h-12"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
+            </div>
 
-              <Button
-                type="submit"
-                className="w-full h-12 text-base touch-btn"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Verifying...' : (
-                  <>
-                    Verify & Continue
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </>
-                )}
-              </Button>
+            <Button
+              type="submit"
+              className="w-full h-12 text-base touch-btn"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Processing...' : (
+                <>
+                  {isLogin ? 'Sign In' : 'Create Account'}
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </>
+              )}
+            </Button>
+          </form>
 
-              <button
-                type="button"
-                onClick={() => setIsVerifying(false)}
-                className="w-full text-center text-sm text-primary hover:underline"
-              >
-                Back to credentials
-              </button>
-            </form>
-          )}
-
-          {!isVerifying && (
-            <p className="mt-6 text-center text-sm text-muted-foreground">
-              {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
-              <button
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-primary font-medium hover:underline"
-              >
-                {isLogin ? 'Sign up' : 'Sign in'}
-              </button>
-            </p>
-          )}
-
-          <div className="mt-8 p-4 bg-accent rounded-xl">
-            <p className="text-sm text-muted-foreground text-center">
-              <strong className="text-foreground">Note:</strong> Check your email (or server terminal) for the 6-digit OTP code to continue.
-            </p>
-          </div>
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
+            <button
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-primary font-medium hover:underline"
+            >
+              {isLogin ? 'Sign up' : 'Sign in'}
+            </button>
+          </p>
         </div>
       </div>
 

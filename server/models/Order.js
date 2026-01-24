@@ -1,27 +1,63 @@
-import mongoose from 'mongoose';
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/db.js';
+import Table from './Table.js';
+import Session from './Session.js';
 
-const orderItemSchema = new mongoose.Schema({
-    product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
-    name: { type: String, required: true },
-    price: { type: Number, required: true },
-    quantity: { type: Number, required: true, default: 1 },
-    notes: { type: String }
+const Order = sequelize.define('Order', {
+    id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true
+    },
+    tableId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: Table,
+            key: 'id'
+        }
+    },
+    sessionId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: Session,
+            key: 'id'
+        }
+    },
+    subtotal: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: 0.00
+    },
+    tax: {
+        type: DataTypes.DECIMAL(10, 2),
+        defaultValue: 0.00
+    },
+    total: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: 0.00
+    },
+    status: {
+        type: DataTypes.ENUM('draft', 'running', 'paid', 'cancelled'),
+        defaultValue: 'draft'
+    },
+    paymentMethod: {
+        type: DataTypes.ENUM('cash', 'card', 'upi', 'other')
+    },
+    paidAt: {
+        type: DataTypes.DATE
+    }
+}, {
+    timestamps: true,
+    tableName: 'orders'
 });
 
-const orderSchema = new mongoose.Schema({
-    table: { type: mongoose.Schema.Types.ObjectId, ref: 'Table', required: true },
-    session: { type: mongoose.Schema.Types.ObjectId, ref: 'Session', required: true },
-    items: [orderItemSchema],
-    subtotal: { type: Number, required: true, default: 0 },
-    tax: { type: Number, default: 0 },
-    total: { type: Number, required: true, default: 0 },
-    status: {
-        type: String,
-        enum: ['draft', 'running', 'paid', 'cancelled'],
-        default: 'draft'
-    },
-    paymentMethod: { type: String, enum: ['cash', 'card', 'upi', 'other'] },
-    paidAt: { type: Date }
-}, { timestamps: true });
+Table.hasMany(Order, { foreignKey: 'tableId' });
+Order.belongsTo(Table, { foreignKey: 'tableId' });
 
-export default mongoose.model('Order', orderSchema);
+Session.hasMany(Order, { foreignKey: 'sessionId' });
+Order.belongsTo(Session, { foreignKey: 'sessionId' });
+
+export default Order;

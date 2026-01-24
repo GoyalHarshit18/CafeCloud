@@ -19,11 +19,7 @@ const statusConfig = {
     className: 'table-occupied',
     dot: 'bg-status-occupied',
   },
-  pending: {
-    label: 'Payment Due',
-    className: 'table-pending',
-    dot: 'bg-status-pending',
-  },
+
 };
 
 export const TableCard = ({ table, onClick, selected }: TableCardProps) => {
@@ -44,18 +40,18 @@ export const TableCard = ({ table, onClick, selected }: TableCardProps) => {
         </span>
         <span className={cn('w-3 h-3 rounded-full animate-pulse-soft', config.dot)} />
       </div>
-      
+
       <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
         <Users className="w-4 h-4" />
         <span>{table.seats} seats</span>
       </div>
-      
+
       <div className="mt-2">
         <span className={cn(
           'status-badge',
           table.status === 'free' && 'status-badge-free',
           table.status === 'occupied' && 'status-badge-occupied',
-          table.status === 'pending' && 'status-badge-pending',
+
         )}>
           {config.label}
         </span>

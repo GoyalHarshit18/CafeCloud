@@ -1,26 +1,15 @@
 import Session from '../models/Session.js';
+import Order from '../models/Order.js';
 
-export const openSession = async (req, res) => {
+export const startSession = async (req, res) => {
     try {
-        const { branchId, openingBalance } = req.body;
-
-        const existingSession = await Session.findOne({
-            user: req.user._id,
-            branch: branchId,
-            status: 'open'
-        });
-
-        if (existingSession) {
-            return res.status(400).json({ message: 'A session is already open for this branch' });
-        }
-
+        const { userId, branchId, openingBalance } = req.body;
         const session = await Session.create({
-            user: req.user._id,
-            branch: branchId,
+            userId,
+            branchId,
             openingBalance,
             status: 'open'
         });
-
         res.status(201).json(session);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -29,20 +18,18 @@ export const openSession = async (req, res) => {
 
 export const closeSession = async (req, res) => {
     try {
-        const { sessionId, closingBalance } = req.body;
-        const session = await Session.findByIdAndUpdate(
-            sessionId,
-            {
-                status: 'closed',
-                closingBalance,
-                endTime: Date.now()
-            },
-            { new: true }
-        );
+        const { sessionId } = req.params;
+        const { closingBalance } = req.body;
 
+        const session = await Session.findByPk(sessionId);
         if (!session) {
             return res.status(404).json({ message: 'Session not found' });
         }
+
+        session.closingBalance = closingBalance;
+        session.endTime = new Date();
+        session.status = 'closed';
+        await session.save();
 
         res.status(200).json(session);
     } catch (error) {
@@ -50,18 +37,17 @@ export const closeSession = async (req, res) => {
     }
 };
 
-export const getActiveSession = async (req, res) => {
+export const getSessionSummary = async (req, res) => {
     try {
-        const session = await Session.findOne({
-            user: req.user._id,
-            status: 'open'
-        }).populate('branch');
+        const { sessionId } = req.params;
+        const orders = await Order.findAll({
+            where: { sessionId, status: 'paid' }
+        });
 
-        if (!session) {
-            return res.status(404).json({ message: 'No active session found' });
-        }
+        const totalSales = orders.reduce((sum, order) => sum + parseFloat(order.total), 0);
+        const ordersCount = orders.length;
 
-        res.status(200).json(session);
+        res.status(200).json({ totalSales, ordersCount });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

@@ -33,34 +33,4 @@ export const authApi = {
         }
         return data;
     },
-
-    verifySignup: async (verifyData: { email: string; otp: string }) => {
-        const response = await fetch(`${API_URL}/auth/verify-signup`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(verifyData),
-        });
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(data.message || 'Verification failed');
-        }
-        return data;
-    },
-
-    verifyLogin: async (verifyData: { email: string; otp: string }) => {
-        const response = await fetch(`${API_URL}/auth/verify-login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(verifyData),
-        });
-        const data = await response.json();
-        if (!response.ok) {
-            throw new Error(data.message || 'Login verification failed');
-        }
-        return data;
-    },
 };

@@ -1,6 +1,6 @@
 // POS Types
 
-export type TableStatus = 'free' | 'occupied' | 'pending';
+export type TableStatus = 'free' | 'occupied';
 
 export interface Table {
   id: string;

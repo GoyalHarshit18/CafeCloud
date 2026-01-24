@@ -38,6 +38,7 @@ export const PaymentSelectionScreen = () => {
     const [couponInput, setCouponInput] = useState('');
     const [isCouponApplied, setIsCouponApplied] = useState(false);
     const [discountAmount, setDiscountAmount] = useState(0);
+    const [isSuccess, setIsSuccess] = useState(false);
 
     // Get total from current order or from existing order for this table
     const existingOrder = orders.find(o => o.tableId === selectedTable?.id && o.status !== 'paid');
@@ -102,9 +103,6 @@ export const PaymentSelectionScreen = () => {
     };
 
     const handleContinue = () => {
-
-        // Simulate payment completion for demo purposes
-        // In a real app, this would route to specific providers
         const methodMap: Record<string, 'cash' | 'card' | 'upi'> = {
             'card': 'card',
             'phonepe': 'upi',
@@ -113,20 +111,50 @@ export const PaymentSelectionScreen = () => {
 
         const finalMethod = methodMap[selectedMethod] || 'cash';
 
-        toast({
-            title: "Processing Payment...",
-            description: `Connecting to ${selectedMethod.toUpperCase()}...`,
-        });
+        // Trigger Success Animation
+        setIsSuccess(true);
 
         setTimeout(() => {
             completePayment(finalMethod);
-            toast({
-                title: t('paymentSuccess'),
-                description: `Successfully paid ₹${finalTotal}`,
-            });
             setCurrentScreen('floor');
-        }, 1500);
+        }, 3500);
     };
+
+    if (isSuccess) {
+        return (
+            <div className="fixed inset-0 z-[200] bg-[#5f259f] flex flex-col items-center justify-center overflow-hidden">
+                {/* Background Rotating Shapes */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border-[60px] border-white/20 rounded-full animate-phonepe-rotate" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border-[40px] border-white/10 rounded-full animate-phonepe-rotate [animation-direction:reverse]" />
+                </div>
+
+                <div className="relative z-10 flex flex-col items-center animate-success-scale">
+                    {/* Circle and Check */}
+                    <div className="w-32 h-32 bg-white rounded-full flex items-center justify-center shadow-2xl mb-8 relative">
+                        <svg className="w-20 h-20 text-[#22c55e]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path className="animate-checkmark-draw" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        {/* Pulse Ring */}
+                        <div className="absolute inset-0 rounded-full border-4 border-white animate-ping opacity-20" />
+                    </div>
+
+                    <h1 className="text-white text-3xl font-black mb-2 tracking-tight">Payment Successful</h1>
+                    <p className="text-white/80 text-lg font-medium mb-8">Odoo Cafe - Table {selectedTable?.number}</p>
+
+                    <div className="bg-white/10 backdrop-blur-md px-10 py-5 rounded-2xl border border-white/20 shadow-xl">
+                        <p className="text-white/60 text-xs uppercase tracking-[0.2em] font-bold mb-1 text-center">Amount Paid</p>
+                        <p className="text-white text-5xl font-black tracking-tighter">₹{finalTotal.toLocaleString()}</p>
+                    </div>
+
+                    <div className="mt-12 flex items-center gap-2 text-white/40">
+                        <Smartphone className="w-4 h-4" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">Transaction Secured by PhonePe</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col min-h-screen bg-[#F1F3F6] pb-24">
