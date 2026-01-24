@@ -26,9 +26,7 @@ export const Sidebar = () => {
 
   const menuItems = [
     { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
-    { id: 'floor', label: t('table'), icon: Grid3X3 },
     { id: 'order', label: t('orders'), icon: ShoppingBag },
-    { id: 'payment', label: t('payment'), icon: CreditCard },
     { id: 'kitchen', label: t('kitchen'), icon: ChefHat },
     { id: 'customer', label: t('customer'), icon: Monitor },
     { id: 'reports', label: t('reports'), icon: BarChart3 },

@@ -1,37 +1,32 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Table, Order, OrderItem, Product, Session, KDSTicket, TableStatus } from '@/types/pos';
 import { floors as initialFloors } from '@/data/floors';
 
 interface POSContextType {
-  // Session
   session: Session | null;
   openSession: () => void;
   closeSession: () => void;
-  
-  // Tables
+
   floors: typeof initialFloors;
   selectedTable: Table | null;
   selectTable: (table: Table | null) => void;
   updateTableStatus: (tableId: string, status: TableStatus) => void;
-  
-  // Orders
+
   currentOrder: OrderItem[];
   addToOrder: (product: Product) => void;
   removeFromOrder: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearOrder: () => void;
   getOrderTotal: () => number;
-  
-  // Kitchen
+
   kdsTickets: KDSTicket[];
   sendToKitchen: () => void;
   updateKDSStatus: (orderId: string, status: KDSTicket['status']) => void;
-  
-  // Orders History
+
   orders: Order[];
   completePayment: (method: 'cash' | 'card' | 'upi') => void;
-  
-  // Navigation
+
   currentScreen: string;
   setCurrentScreen: (screen: string) => void;
 }
@@ -39,14 +34,23 @@ interface POSContextType {
 const POSContext = createContext<POSContextType | undefined>(undefined);
 
 export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [session, setSession] = useState<Session | null>(null);
   const [floors, setFloors] = useState(initialFloors);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const [currentOrder, setCurrentOrder] = useState<OrderItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [kdsTickets, setKdsTickets] = useState<KDSTicket[]>([]);
-  const [currentScreen, setCurrentScreen] = useState('dashboard');
   const [orderCounter, setOrderCounter] = useState(1001);
+
+  // Derive currentScreen from URL
+  // e.g. /pos/dashboard -> dashboard
+  const currentScreen = location.pathname.split('/').pop() || 'dashboard';
+
+  const setCurrentScreen = useCallback((screen: string) => {
+    navigate(`/pos/${screen}`);
+  }, [navigate]);
 
   const openSession = useCallback(() => {
     setSession({
@@ -57,7 +61,9 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       totalSales: 0,
       ordersCount: 0,
     });
-  }, []);
+    // Navigate to floor screen
+    navigate('/pos/floor');
+  }, [navigate]);
 
   const closeSession = useCallback(() => {
     if (session) {
@@ -80,7 +86,7 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const updateTableStatus = useCallback((tableId: string, status: TableStatus) => {
     setFloors(prev => prev.map(floor => ({
       ...floor,
-      tables: floor.tables.map(table => 
+      tables: floor.tables.map(table =>
         table.id === tableId ? { ...table, status } : table
       )
     })));
@@ -126,10 +132,10 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const sendToKitchen = useCallback(() => {
     if (!selectedTable || currentOrder.length === 0) return;
-    
+
     const orderId = `ORD-${orderCounter}`;
     setOrderCounter(prev => prev + 1);
-    
+
     const newTicket: KDSTicket = {
       orderId,
       tableNumber: selectedTable.number,
@@ -137,10 +143,10 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       status: 'to-cook',
       createdAt: new Date(),
     };
-    
+
     setKdsTickets(prev => [...prev, newTicket]);
     updateTableStatus(selectedTable.id, 'occupied');
-    
+
     const newOrder: Order = {
       id: orderId,
       tableId: selectedTable.id,
@@ -151,7 +157,7 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updatedAt: new Date(),
       total: getOrderTotal(),
     };
-    
+
     setOrders(prev => [...prev, newOrder]);
     clearOrder();
   }, [selectedTable, currentOrder, orderCounter, updateTableStatus, getOrderTotal, clearOrder]);
@@ -161,11 +167,11 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       prev.map(ticket =>
         ticket.orderId === orderId
           ? {
-              ...ticket,
-              status,
-              startedAt: status === 'preparing' ? new Date() : ticket.startedAt,
-              completedAt: status === 'completed' ? new Date() : ticket.completedAt,
-            }
+            ...ticket,
+            status,
+            startedAt: status === 'preparing' ? new Date() : ticket.startedAt,
+            completedAt: status === 'completed' ? new Date() : ticket.completedAt,
+          }
           : ticket
       )
     );
@@ -173,7 +179,7 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const completePayment = useCallback((method: 'cash' | 'card' | 'upi') => {
     if (!selectedTable) return;
-    
+
     const tableOrder = orders.find(o => o.tableId === selectedTable.id && o.status !== 'paid');
     if (tableOrder) {
       setOrders(prev =>
@@ -183,14 +189,14 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             : o
         )
       );
-      
+
       setSession(prev => prev ? {
         ...prev,
         totalSales: prev.totalSales + tableOrder.total,
         ordersCount: prev.ordersCount + 1,
       } : null);
     }
-    
+
     updateTableStatus(selectedTable.id, 'free');
     setSelectedTable(null);
     clearOrder();

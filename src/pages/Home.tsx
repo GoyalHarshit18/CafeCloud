@@ -14,7 +14,6 @@ import {
     Utensils
 } from 'lucide-react';
 
-// Images
 import heroImage from '@/assets/cafe_hero_wide_1769246092524.png';
 import burgerImage from '@/assets/gourmet_burger_plate_1769246107987.png';
 import coffeeImage from '@/assets/latte_art_coffee_1769246121448.png';
@@ -33,7 +32,7 @@ export const Home = () => {
                         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                             <span className="text-primary-foreground font-bold text-lg">O</span>
                         </div>
-                        <span className="font-bold text-xl tracking-tight text-primary">Odoo Cafe POS</span>
+                        <span className="font-bold text-xl tracking-tight text-primary">Odoo Cafe</span>
                     </div>
                     <div className="flex items-center gap-4">
                         <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground hidden sm:block">Features</a>
@@ -62,7 +61,7 @@ export const Home = () => {
                 <div className="relative z-10 text-center px-4 max-w-4xl mx-auto animate-fade-in-up">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white/90 text-sm font-medium mb-6">
                         <Zap className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                        <span>Fast, Reliable, & Beautiful</span>
+                        <span>Fast and Reliable</span>
                     </div>
 
                     <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6 tracking-tight leading-tight">
@@ -218,10 +217,10 @@ export const Home = () => {
                         <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
                             <span className="text-white font-bold text-lg">O</span>
                         </div>
-                        <span className="font-bold text-xl">Odoo Cafe POS</span>
+                        <span className="font-bold text-xl">Odoo Cafe </span>
                     </div>
                     <p className="text-white/40 text-sm">
-                        © 2026 Odoo Cafe POS. All rights reserved.
+                        © 2026 Odoo Cafe. All rights reserved.
                     </p>
                 </div>
             </footer>

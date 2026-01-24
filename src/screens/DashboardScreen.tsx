@@ -14,7 +14,10 @@ import {
   CreditCard,
   Settings,
   BarChart3,
-  ShieldCheck
+  ShieldCheck,
+  Monitor,
+  Calendar,
+  IndianRupee
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -34,53 +37,81 @@ export const DashboardScreen = () => {
     { icon: Grid3X3, label: t('table'), color: 'bg-primary/10 text-primary' },
     { icon: ShoppingBag, label: t('newOrder'), color: 'bg-status-free/10 text-status-free' },
     { icon: ChefHat, label: t('kitchen'), color: 'bg-warm-amber/10 text-warm-amber' },
-    { icon: CreditCard, label: t('payment'), color: 'bg-primary/10 text-primary' },
     { icon: BarChart3, label: t('reports'), color: 'bg-status-occupied/10 text-status-occupied' },
     { icon: Settings, label: t('settings'), color: 'bg-muted text-muted-foreground' },
   ];
 
   if (!session) {
     return (
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
+      <div className="max-w-4xl mx-auto animate-fade-in">
+        <div className="text-center mb-10">
           <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
             <ShieldCheck className="w-10 h-10 text-primary" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">POS Staff Dashboard</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">POS Configuration Screen</h1>
           <p className="text-muted-foreground">
-            Manage the complete restaurant workflow from orders to payments
+            Select a terminal to open a new session and start managing your cafe
           </p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-          {roleFeatures.map((feature, i) => (
-            <div
-              key={i}
-              className={cn(
-                'pos-card p-4 flex items-center gap-3 animate-fade-in',
-              )}
-              style={{ animationDelay: `${i * 50}ms` }}
-            >
-              <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', feature.color)}>
-                <feature.icon className="w-5 h-5" />
+        <div className="grid gap-6">
+          <div className="pos-card overflow-hidden border-2 border-primary/10 hover:border-primary/30 transition-all group">
+            <div className="p-6">
+              <div className="flex items-start justify-between mb-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Monitor className="w-7 h-7 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-foreground">Main POS Terminal</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="flex h-2 w-2 rounded-full bg-slate-400" />
+                      <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Disconnected</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="hidden sm:block text-right">
+                  <p className="text-sm text-muted-foreground mb-1">Terminal ID</p>
+                  <p className="font-mono font-bold text-foreground">POS-001</p>
+                </div>
               </div>
-              <span className="text-sm font-medium text-foreground">{feature.label}</span>
-            </div>
-          ))}
-        </div>
 
-        <div className="pos-card p-8 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-accent flex items-center justify-center mx-auto mb-4">
-            <Clock className="w-8 h-8 text-primary" />
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="bg-secondary/50 p-4 rounded-2xl border border-border/50">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                    <Calendar className="w-4 h-4" />
+                    <span className="text-xs font-semibold uppercase tracking-wider">Last Open Date</span>
+                  </div>
+                  <p className="text-lg font-bold text-foreground">
+                    {format(new Date(), 'MMM dd, yyyy')}
+                  </p>
+                </div>
+                <div className="bg-secondary/50 p-4 rounded-2xl border border-border/50">
+                  <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                    <IndianRupee className="w-4 h-4" />
+                    <span className="text-xs font-semibold uppercase tracking-wider">Last Sale Amount</span>
+                  </div>
+                  <p className="text-lg font-bold text-foreground">₹24,580.00</p>
+                </div>
+              </div>
+
+              <Button
+                onClick={openSession}
+                size="lg"
+                className="w-full h-14 text-lg font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 active:scale-[0.98] transition-all bg-primary hover:bg-primary/95"
+              >
+                <Play className="w-6 h-6 mr-2 fill-current" />
+                Open Session
+              </Button>
+            </div>
+            <div className="bg-muted/30 px-6 py-3 border-t border-border/50 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">Software Version: 2.1.0-stable</span>
+              <div className="flex items-center gap-1">
+                <div className="w-1.5 h-1.5 rounded-full bg-status-free" />
+                <span className="text-xs font-medium text-status-free">System Ready</span>
+              </div>
+            </div>
           </div>
-          <h2 className="text-xl font-bold text-foreground mb-2">No Active Session</h2>
-          <p className="text-muted-foreground mb-6">
-            Open a new session to start taking orders and processing payments
-          </p>
-          <Button onClick={openSession} size="lg" className="touch-btn">
-            <Play className="w-5 h-5 mr-2" />
-            {t('openSession')}
-          </Button>
         </div>
       </div>
     );

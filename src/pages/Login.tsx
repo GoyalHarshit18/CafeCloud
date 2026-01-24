@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { authApi } from '@/lib/api';
+import { useTheme } from 'next-themes';
+import { useEffect } from 'react';
 
 import pizzaImg from '@/assets/food/pizza.jpg';
 import burgerImg from '@/assets/food/burger.jpg';
@@ -22,6 +24,11 @@ export const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { setTheme } = useTheme();
+
+  useEffect(() => {
+    setTheme('light');
+  }, [setTheme]);
 
   const handleAuthRequest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +116,7 @@ export const LoginPage = () => {
               <span className="text-primary-foreground font-bold text-xl">O</span>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Odoo Cafe POS</h1>
+              <h1 className="text-2xl font-bold text-foreground">Odoo Cafe</h1>
               <p className="text-sm text-muted-foreground">Restaurant Management System</p>
             </div>
           </div>
@@ -123,7 +130,7 @@ export const LoginPage = () => {
                 ? `Enter the 6-digit code sent to ${email}`
                 : isLogin
                   ? 'Enter your credentials to access the POS system'
-                  : 'Register to start using Odoo Cafe POS'}
+                  : 'Register to start using Odoo Cafe'}
             </p>
           </div>
 

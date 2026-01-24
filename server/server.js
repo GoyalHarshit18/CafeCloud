@@ -5,22 +5,29 @@ import express from 'express';
 import cors from 'cors';
 import connectDB from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
+import homeRoutes from './routes/home.routes.js';
+import sessionRoutes from './routes/session.routes.js';
+import posRoutes from './routes/pos.routes.js';
+import orderRoutes from './routes/order.routes.js';
 
-// Connect to database
 connectDB();
 
 const app = express();
 
-// Body parser
 app.use(express.json());
 
-// Enable CORS
 app.use(cors());
 
-// Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/home', homeRoutes);
+app.use('/api/session', sessionRoutes);
+app.use('/api/pos', posRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/payments', orderRoutes); // Reusing order routes for payments as they are linked
+app.use('/api/floors', posRoutes); // Also mapping /api/floors to posRoutes
+app.use('/api/tables', posRoutes); // Also mapping /api/tables to posRoutes
 
-// Basic route
+
 app.get('/', (req, res) => {
     res.send('Odoo Cafe POS API is running...');
 });

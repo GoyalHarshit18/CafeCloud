@@ -1,22 +1,17 @@
 import jwt from 'jsonwebtoken';
-// import crypto from 'crypto'; // Unused
 import User from '../models/User.js';
 import Otp from '../models/Otp.js';
 import { sendOtpMail } from '../utils/mailer.js';
 
-// Helper to generate JWT Token
 const generateToken = (id, role, secret, expiresIn) => {
     return jwt.sign({ id, role }, secret, { expiresIn });
 };
 
-// Helper to generate 6-digit OTP
+
 const generateOTP = () => {
     return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
-// @desc    Signup Request (Step 1)
-// @route   POST /api/auth/signup
-// @access  Public
 export const signupRequest = async (req, res) => {
     const { username, email, password, role } = req.body;
 
@@ -60,9 +55,6 @@ export const signupRequest = async (req, res) => {
     }
 };
 
-// @desc    Verify Signup OTP (Step 2)
-// @route   POST /api/auth/verify-signup
-// @access  Public
 export const verifySignup = async (req, res) => {
     const { email, otp } = req.body;
 
@@ -98,9 +90,6 @@ export const verifySignup = async (req, res) => {
     }
 };
 
-// @desc    Login Request (Step 1)
-// @route   POST /api/auth/login
-// @access  Public
 export const loginRequest = async (req, res) => {
     const { email, password } = req.body;
 
@@ -141,9 +130,6 @@ export const loginRequest = async (req, res) => {
     }
 };
 
-// @desc    Verify Login OTP (Step 2)
-// @route   POST /api/auth/verify-login
-// @access  Public
 export const verifyLogin = async (req, res) => {
     const { email, otp } = req.body;
 
