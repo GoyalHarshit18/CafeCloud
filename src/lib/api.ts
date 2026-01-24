@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:5000/api';
+// CHANGE THIS to your machine's IP (e.g., '192.168.1.5') to access from other devices
+const API_URL = `http://${window.location.hostname}:5000/api`;
 
 export const authApi = {
     register: async (userData: any) => {
