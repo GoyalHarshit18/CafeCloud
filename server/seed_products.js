@@ -3,16 +3,31 @@ const { Sequelize, DataTypes } = pkg;
 import dotenv from 'dotenv';
 dotenv.config();
 
-const sequelize = new Sequelize(
-    process.env.DB_NAME,
-    process.env.DB_USER,
-    process.env.DB_PASS,
-    {
-        host: process.env.DB_HOST,
+let sequelize;
+
+if (process.env.DATABASE_URL) {
+    sequelize = new Sequelize(process.env.DATABASE_URL, {
         dialect: 'postgres',
-        logging: false
-    }
-);
+        logging: false,
+        dialectOptions: {
+            ssl: {
+                require: true,
+                rejectUnauthorized: false
+            }
+        }
+    });
+} else {
+    sequelize = new Sequelize(
+        process.env.DB_NAME,
+        process.env.DB_USER,
+        process.env.DB_PASS,
+        {
+            host: process.env.DB_HOST,
+            dialect: 'postgres',
+            logging: false
+        }
+    );
+}
 
 const ProductModel = sequelize.define('Product', {
     name: { type: DataTypes.STRING, allowNull: false },
