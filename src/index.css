@@ -80,30 +80,34 @@
 
   .dark {
     /* Odoo Dark Mode Theme - Dark Slate / Charcoal */
-    --background: 215 15% 14%; /* #1E2329 Dark Slate */
-    --foreground: 0 0% 92%; /* #EAEAEA Soft White */
-    
-    --card: 217 15% 20%; /* #2B303B Lighter Charcoal */
+    --background: 215 15% 14%;
+    /* #1E2329 Dark Slate */
+    --foreground: 0 0% 92%;
+    /* #EAEAEA Soft White */
+
+    --card: 217 15% 20%;
+    /* #2B303B Lighter Charcoal */
     --card-foreground: 0 0% 92%;
-    
+
     --popover: 217 15% 20%;
     --popover-foreground: 0 0% 92%;
-    
-    --primary: 262 83% 70%; /* Lighter purple for dark mode visibility */
+
+    --primary: 262 83% 70%;
+    /* Lighter purple for dark mode visibility */
     --primary-foreground: 0 0% 100%;
-    
+
     --secondary: 215 15% 25%;
     --secondary-foreground: 0 0% 95%;
-    
+
     --muted: 215 15% 25%;
     --muted-foreground: 215 10% 65%;
-    
+
     --accent: 262 40% 30%;
     --accent-foreground: 262 83% 85%;
-    
+
     --destructive: 0 62% 40%;
     --destructive-foreground: 0 0% 100%;
-    
+
     --border: 215 15% 25%;
     --input: 215 15% 25%;
     --ring: 262 83% 70%;
@@ -238,6 +242,22 @@
     animation: fadeIn 0.3s ease-out;
   }
 
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   .animate-slide-up {
     animation: slideUp 0.3s ease-out;
   }
@@ -301,6 +321,7 @@
   }
 
   @keyframes bounceSubtle {
+
     0%,
     100% {
       transform: translateY(0);
@@ -313,25 +334,57 @@
 
   /* PhonePe Success Animations */
   @keyframes phonepe-rotate {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+
+    100% {
+      transform: rotate(360deg);
+    }
   }
 
   @keyframes checkmark-draw {
-    0% { stroke-dashoffset: 48; opacity: 0; }
-    50% { opacity: 1; }
-    100% { stroke-dashoffset: 0; opacity: 1; }
+    0% {
+      stroke-dashoffset: 48;
+      opacity: 0;
+    }
+
+    50% {
+      opacity: 1;
+    }
+
+    100% {
+      stroke-dashoffset: 0;
+      opacity: 1;
+    }
   }
 
   @keyframes success-scale {
-    0% { transform: scale(0.5); opacity: 0; }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); opacity: 1; }
+    0% {
+      transform: scale(0.5);
+      opacity: 0;
+    }
+
+    50% {
+      transform: scale(1.1);
+    }
+
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 
   @keyframes success-bg-expand {
-    0% { transform: scale(0); opacity: 0; }
-    100% { transform: scale(25); opacity: 1; }
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+
+    100% {
+      transform: scale(25);
+      opacity: 1;
+    }
   }
 
   .animate-phonepe-rotate {

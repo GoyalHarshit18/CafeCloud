@@ -131,8 +131,7 @@ By solving **real-world restaurant problems**, ServeMate directly contributes to
 
 ## 🔗 GitHub Repository
 
-https://github.com/your-username/servemate-odoo-cafe-pos
-
+https://github.com/GoyalHarshit18/Odoo-Cafe-POS
 ---
 
 ## 🏁 Conclusion
