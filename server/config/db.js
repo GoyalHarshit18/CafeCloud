@@ -14,7 +14,7 @@ const sequelize = process.env.DATABASE_URL
       }
     },
     pool: {
-      max: 5,
+      max: 10,
       min: 0,
       acquire: 60000,
       idle: 10000
@@ -38,4 +38,26 @@ const sequelize = process.env.DATABASE_URL
     }
   );
 
+// Test the connection with retries
+const connectWithRetry = async (retries = 5, delay = 5000) => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await sequelize.authenticate();
+      console.log('PostgreSQL database connected via Sequelize...');
+      return;
+    } catch (err) {
+      console.error(`Database connection attempt ${i + 1} failed:`, err.message);
+      if (i < retries - 1) {
+        console.log(`Retrying in ${delay / 1000} seconds...`);
+        await new Promise(res => setTimeout(res, delay));
+      } else {
+        console.error('Max retries reached. Exiting.');
+        throw err;
+      }
+    }
+  }
+};
+
+// Export both sequelize and the connect function
+export { connectWithRetry };
 export default sequelize;

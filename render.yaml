@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: odoo-cafe-pos-server
+    runtime: node
+    region: singapore # Optional: Choose a region close to your database
+    buildCommand: cd server && npm install
+    startCommand: cd server && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false # User must provide this manually
+      - key: JWT_SECRET
+        sync: false # User must provide this manually
+      - key: FRONTEND_URL
+        sync: false # User must provide this manually
+    autoDeploy: false

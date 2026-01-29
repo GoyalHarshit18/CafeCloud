@@ -1,7 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import sequelize from './config/db.js';
+import sequelize, { connectWithRetry } from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
 import homeRoutes from './routes/home.routes.js';
 import branchRoutes from './routes/branch.routes.js';
@@ -16,7 +16,7 @@ dotenv.config();
 const app = express();
 
 app.use(express.json());
-app.use(cors());
+app.use(cors()); // TODO: Restrict for production if needed
 app.use('/public', express.static('public'));
 
 app.use('/api/auth', authRoutes);
@@ -32,19 +32,18 @@ const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
     try {
-        await sequelize.authenticate();
-        console.log('PostgreSQL database connected...');
+        await connectWithRetry();
 
         // Sync models
         await sequelize.sync({ alter: true });
         console.log('Database synced successfully');
-
-        app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
-        });
     } catch (error) {
-        console.error('Unable to connect to the database:', error);
+        console.error('Failed to connect to database after retries. Starting server anyway (endpoints may fail)...', error);
     }
+
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
 };
 
 startServer();
