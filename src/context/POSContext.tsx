@@ -53,9 +53,9 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isProductsLoading, setIsProductsLoading] = useState(true);
 
   // Fetch floors from backend
-  const fetchFloors = useCallback(async () => {
+  const fetchFloors = useCallback(async (isInitial = false) => {
     try {
-      setIsFloorsLoading(true);
+      if (isInitial) setIsFloorsLoading(true);
       const response = await fetch(`${BASE_URL}/api/pos/floors`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -90,9 +90,9 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   // Fetch products from backend
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async (isInitial = false) => {
     try {
-      setIsProductsLoading(true);
+      if (isInitial) setIsProductsLoading(true);
       const response = await fetch(`${BASE_URL}/api/pos/products`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -206,15 +206,15 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      fetchFloors();
-      fetchProducts();
+      fetchFloors(true);
+      fetchProducts(true);
       fetchKDSTickets();
       checkActiveSession();
 
       const syncInterval = setInterval(() => {
         fetchKDSTickets();
-        fetchFloors(); // Fetch floors periodically for real-time updates
-      }, 2000); // 2 seconds for better real-time feel
+        fetchFloors(false); // No spinner for background sync
+      }, 5000); // Increased to 5s to reduce network load
       return () => clearInterval(syncInterval);
     }
   }, [fetchFloors, fetchProducts, fetchKDSTickets, checkActiveSession]);

@@ -74,10 +74,12 @@ const startServer = async () => {
 
     try {
         await connectWithRetry();
-        await sequelize.sync({ alter: true });
-        console.log('Database synced successfully');
+        // Only alter table if in development. Production should use migrations or manual sync.
+        const shouldAlter = process.env.NODE_ENV === 'development';
+        await sequelize.sync({ alter: shouldAlter });
+        console.log(`Database synced (alter: ${shouldAlter})`);
     } catch (err) {
-        console.error('DB error:', err);
+        console.error('DB Sync Error:', err.message);
     }
 };
 
