@@ -54,12 +54,15 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Fetch floors from backend
   const fetchFloors = useCallback(async (isInitial = false) => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
     try {
       if (isInitial) setIsFloorsLoading(true);
       const response = await fetch(`${BASE_URL}/api/pos/floors`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        },
+        signal: controller.signal
       });
       if (response.ok) {
         const data = await response.json();
@@ -82,21 +85,29 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }));
         setFloors(mappedFloors);
       }
-    } catch (error) {
-      console.error('Failed to fetch floors:', error);
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.error('Fetch floors timed out');
+      } else {
+        console.error('Failed to fetch floors:', error);
+      }
     } finally {
+      clearTimeout(timeout);
       setIsFloorsLoading(false);
     }
   }, []);
 
   // Fetch products from backend
   const fetchProducts = useCallback(async (isInitial = false) => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
     try {
       if (isInitial) setIsProductsLoading(true);
       const response = await fetch(`${BASE_URL}/api/pos/products`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
+        },
+        signal: controller.signal
       });
       if (response.ok) {
         const data = await response.json();
@@ -114,9 +125,14 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         console.log(`[POSContext] Mapped products:`, mappedProducts.map(p => `${p.name} (${p.category})`));
         setProducts(mappedProducts);
       }
-    } catch (error) {
-      console.error('Failed to fetch products:', error);
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.error('Fetch products timed out');
+      } else {
+        console.error('Failed to fetch products:', error);
+      }
     } finally {
+      clearTimeout(timeout);
       setIsProductsLoading(false);
     }
   }, []);
@@ -205,6 +221,13 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+
+    // Failsafe: Hide loading spinner after 20 seconds no matter what
+    const failsafeTimer = setTimeout(() => {
+      setIsFloorsLoading(false);
+      setIsProductsLoading(false);
+    }, 20000);
+
     if (token) {
       fetchFloors(true);
       fetchProducts(true);
@@ -213,9 +236,16 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       const syncInterval = setInterval(() => {
         fetchKDSTickets();
-        fetchFloors(false); // No spinner for background sync
-      }, 5000); // Increased to 5s to reduce network load
-      return () => clearInterval(syncInterval);
+        fetchFloors(false);
+      }, 5000);
+      return () => {
+        clearInterval(syncInterval);
+        clearTimeout(failsafeTimer);
+      };
+    } else {
+      setIsFloorsLoading(false);
+      setIsProductsLoading(false);
+      clearTimeout(failsafeTimer);
     }
   }, [fetchFloors, fetchProducts, fetchKDSTickets, checkActiveSession]);
 
