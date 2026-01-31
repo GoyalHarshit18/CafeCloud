@@ -31,7 +31,8 @@ export const AdminProductManager = () => {
     const fetchProducts = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:5000/api/pos/products', {
+
+            const response = await fetch(`${BASE_URL}/api/pos/products`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
             if (response.ok) {
@@ -47,8 +48,8 @@ export const AdminProductManager = () => {
 
     const handleSubmit = async () => {
         const url = editingProduct
-            ? `http://localhost:5000/api/pos/products/${editingProduct.id}`
-            : 'http://localhost:5000/api/pos/products';
+            ? `${BASE_URL}/api/pos/products/${editingProduct.id}`
+            : `${BASE_URL}/api/pos/products`;
         const method = editingProduct ? 'PUT' : 'POST';
 
         try {
@@ -83,7 +84,8 @@ export const AdminProductManager = () => {
     const handleDelete = async (id: string) => {
         if (!confirm("Delete this product?")) return;
         try {
-            const response = await fetch(`http://localhost:5000/api/pos/products/${id}`, {
+
+            const response = await fetch(`${BASE_URL}/api/pos/products/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });

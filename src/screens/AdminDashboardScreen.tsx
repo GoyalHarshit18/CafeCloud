@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { BASE_URL } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,7 +37,7 @@ export const AdminDashboardScreen = () => {
 
     const fetchStaff = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/admin/staff', {
+            const response = await fetch(`${BASE_URL}/api/admin/staff`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
             if (response.ok) {
@@ -50,7 +51,7 @@ export const AdminDashboardScreen = () => {
 
     const handleAddStaff = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/admin/staff', {
+            const response = await fetch(`${BASE_URL}/api/admin/staff`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -80,7 +81,7 @@ export const AdminDashboardScreen = () => {
     const handleDeleteStaff = async (id: number) => {
         if (!confirm("Are you sure?")) return;
         try {
-            const response = await fetch(`http://localhost:5000/api/admin/staff/${id}`, {
+            const response = await fetch(`${BASE_URL}/api/admin/staff/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });

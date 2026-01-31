@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
+import { BASE_URL } from '@/lib/api';
 import { CheckCircle2, Clock, Download, LogOut } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -40,7 +41,7 @@ export const CustomerDisplayScreen = () => {
                 }
 
                 const user = JSON.parse(userStr);
-                const response = await fetch(`http://localhost:5000/api/orders/customer/${user.id}`, {
+                const response = await fetch(`${BASE_URL}/api/orders/customer/${user.id}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }

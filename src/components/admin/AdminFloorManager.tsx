@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { BASE_URL } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,7 +30,8 @@ export const AdminFloorManager = () => {
     const fetchFloors = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:5000/api/pos/floors', {
+
+            const response = await fetch(`${BASE_URL}/api/pos/floors`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
             if (response.ok) {
@@ -46,7 +48,8 @@ export const AdminFloorManager = () => {
     const handleAddFloor = async () => {
         if (!newFloorName) return;
         try {
-            const response = await fetch('http://localhost:5000/api/pos/floors', {
+
+            const response = await fetch(`${BASE_URL}/api/pos/floors`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -73,7 +76,8 @@ export const AdminFloorManager = () => {
     const handleDeleteFloor = async (id: string) => {
         if (!confirm("Delete this floor and all its tables?")) return;
         try {
-            const response = await fetch(`http://localhost:5000/api/pos/floors/${id}`, {
+
+            const response = await fetch(`${BASE_URL}/api/pos/floors/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
@@ -93,7 +97,8 @@ export const AdminFloorManager = () => {
     const handleAddTable = async () => {
         if (!selectedFloorForTable) return;
         try {
-            const response = await fetch('http://localhost:5000/api/pos/tables', {
+
+            const response = await fetch(`${BASE_URL}/api/pos/tables`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

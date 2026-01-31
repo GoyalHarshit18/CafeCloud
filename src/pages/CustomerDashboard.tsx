@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { BASE_URL } from '@/lib/api';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,7 +24,7 @@ export const CustomerDashboardPage = () => {
 
     const fetchHistory = async (token) => {
         try {
-            const response = await fetch('http://localhost:5000/api/customer/history', {
+            const response = await fetch(`${BASE_URL}/api/customer/history`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {
