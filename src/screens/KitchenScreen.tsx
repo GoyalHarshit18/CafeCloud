@@ -78,7 +78,7 @@ export const KitchenScreen = () => {
                   <KDSTicketCard
                     key={ticket.orderId}
                     ticket={ticket}
-                    readOnly={true}
+                    readOnly={false}
                   />
                 ))}
               </div>

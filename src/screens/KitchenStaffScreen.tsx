@@ -53,12 +53,6 @@ export const KitchenStaffScreen = () => {
                 const seenTables = new Set();
                 const mappedOrders = data
                     .filter((o: any) => ['running', 'in-kitchen', 'preparing', 'ready', 'draft', 'paid', 'completed'].includes(o.status))
-                    .filter((o: any) => {
-                        const tableId = o.tableId || o.Table?.id;
-                        if (seenTables.has(tableId)) return false;
-                        seenTables.add(tableId);
-                        return true;
-                    })
                     .map((o: any) => {
                         const orderId = o.id;
                         return {
@@ -210,7 +204,10 @@ export const KitchenStaffScreen = () => {
 
                 <div className="flex items-center gap-4">
                     <Button
-                        onClick={() => fetchOrders()}
+                        onClick={() => {
+                            fetchOrders();
+                            toast({ title: "Refreshing...", description: "Syncing latest orders from server." });
+                        }}
                         variant="outline"
                         className="bg-card shadow-sm h-11 px-6 rounded-xl font-bold text-xs"
                     >

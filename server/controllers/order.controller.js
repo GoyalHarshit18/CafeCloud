@@ -104,13 +104,13 @@ export const updateOrder = async (req, res) => {
         }
 
         // Ownership Check: If order is locked, only the locker can update it
-        // Except if the locker is clearing the lock or if it's currently unlocked
-        if (currentOrder.lockedBy && req.body.lockedBy && currentOrder.lockedBy !== req.user.id) {
+        // Use != to handle potential string/number mismatches from different clients
+        if (currentOrder.lockedBy && req.body.lockedBy && currentOrder.lockedBy != req.user.id) {
             return res.status(403).json({ message: 'This order is currently being prepared by another staff member' });
         }
 
         // Similarly, if it's already locked and they try to update status without being the locker
-        if (currentOrder.lockedBy && currentOrder.lockedBy !== req.user.id && !req.body.lockedBy) {
+        if (currentOrder.lockedBy && currentOrder.lockedBy != req.user.id && !req.body.lockedBy) {
             return res.status(403).json({ message: 'This order is locked for preparation by another staff member' });
         }
 

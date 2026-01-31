@@ -146,18 +146,10 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (response.ok) {
         const data = await response.json();
         // Only show orders that are actually in progress or ready
-        const allActiveOrders = data.filter((o: any) =>
+        // Show ALL active orders (Takeaway orders might not have a tableId)
+        const activeOrders = data.filter((o: any) =>
           ['running', 'preparing', 'ready', 'in-kitchen', 'paid'].includes(o.status)
         );
-
-        // Filter duplicates: Keep only the latest order per table
-        const seenTables = new Set();
-        const activeOrders = allActiveOrders.filter((o: any) => {
-          const tableId = o.tableId || o.Table?.id;
-          if (seenTables.has(tableId)) return false;
-          seenTables.add(tableId);
-          return true;
-        });
 
         const tickets: KDSTicket[] = activeOrders.map((order: any) => {
           const dbId = (order.id || order._id).toString();
