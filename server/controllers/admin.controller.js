@@ -77,7 +77,13 @@ export const addStaff = async (req, res) => {
 
     try {
         const userExists = await User.findOne({ where: { email } });
-        if (userExists) return res.status(400).json({ message: 'User already exists' });
+        if (userExists) {
+            return res.status(400).json({
+                message: userExists.branchId === branchId
+                    ? 'User already exists in your branch'
+                    : 'User email already registered with another restaurant'
+            });
+        }
 
         const user = await User.create({
             username,
@@ -91,6 +97,28 @@ export const addStaff = async (req, res) => {
         res.status(201).json({ message: 'Staff created successfully', user: { id: user.id, username: user.username, role: user.role } });
     } catch (error) {
         console.error("Add Staff Error:", error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+export const updateStaff = async (req, res) => {
+    const { id } = req.params;
+    const { username, email, role, password } = req.body;
+    const branchId = req.user.branchId;
+
+    try {
+        const user = await User.findOne({ where: { id, branchId } });
+        if (!user) return res.status(404).json({ message: 'Staff not found' });
+
+        user.username = username || user.username;
+        user.email = email || user.email;
+        user.role = role || user.role;
+        if (password) user.password = password;
+
+        await user.save();
+        res.json({ message: 'Staff updated successfully', user: { id: user.id, username: user.username, role: user.role } });
+    } catch (error) {
+        console.error("Update Staff Error:", error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
@@ -116,14 +144,19 @@ export const removeStaff = async (req, res) => {
 export const getDashboardStats = async (req, res) => {
     const branchId = req.user.branchId;
     try {
-        // Implement stats logic here (Total sales, etc.)
-        // Placeholder for now
+        const staffCount = await User.count({ where: { branchId } });
+        const productCount = await Product.count({ where: { branchId } });
+        const floorCount = await Floor.count({ where: { branchId } });
+
+        // You could add sales logic here later
         res.json({
-            sales: 0,
-            orders: 0,
-            activeTables: 0
+            staff: staffCount,
+            products: productCount,
+            floors: floorCount,
+            sales: 0 // Placeholder for real sales logic
         });
     } catch (error) {
+        console.error("Stats Error:", error);
         res.status(500).json({ message: 'Server error' });
     }
 };
