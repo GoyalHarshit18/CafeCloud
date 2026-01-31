@@ -4,35 +4,36 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Parse DATABASE_URL if present to ensure options are applied correctly
-  ?new Sequelize(process.env.DATABASE_URL, {
-  dialect: 'postgres',
-  protocol: 'postgres',
-  logging: false,
-  dialectOptions: {
-    ssl: {
-      require: true,
-      rejectUnauthorized: false
-    },
-    keepAlive: true
-  },
-  pool: {
-    max: 10,
-    min: 0,
-    acquire: 60000,
-    idle: 10000
-  }
-})
-  : new Sequelize(
-  process.env.DB_NAME || 'odoo_cafe_pos',
-  process.env.DB_USER || 'postgres',
-  process.env.DB_PASS || 'postgres',
-  {
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 5432,
+const sequelize = process.env.DATABASE_URL
+  ? new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
+    protocol: 'postgres',
     logging: false,
-  }
-);
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      },
+      keepAlive: true
+    },
+    pool: {
+      max: 10,
+      min: 0,
+      acquire: 60000,
+      idle: 10000
+    }
+  })
+  : new Sequelize(
+    process.env.DB_NAME || 'odoo_cafe_pos',
+    process.env.DB_USER || 'postgres',
+    process.env.DB_PASS || 'postgres',
+    {
+      host: process.env.DB_HOST || 'localhost',
+      port: process.env.DB_PORT || 5432,
+      dialect: 'postgres',
+      logging: false,
+    }
+  );
 
 // Test the connection with retries
 const connectWithRetry = async (retries = 5, delay = 5000) => {
