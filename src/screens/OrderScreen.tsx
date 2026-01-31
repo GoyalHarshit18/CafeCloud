@@ -99,9 +99,16 @@ export const OrderScreen = () => {
                 Order Screen
               </h1>
               {selectedTable && (
-                <p className="text-sm text-muted-foreground">
-                  {t('table')} {selectedTable.number} • {selectedTable.seats} {t('guests')}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    {t('table')} {selectedTable.number} • {selectedTable.seats} {t('guests')}
+                  </p>
+                  {selectedTable.status === 'occupied' && (
+                    <span className="px-2 py-0.5 bg-status-occupied/10 text-status-occupied text-[10px] font-bold rounded-full border border-status-occupied/20 animate-pulse">
+                      IN PROGRESS
+                    </span>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -126,17 +133,38 @@ export const OrderScreen = () => {
         </div>
 
         {/* Categories */}
-        <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-thin">
+        <div className="flex gap-4 overflow-x-auto pb-6 mb-6 scrollbar-thin">
           {categories.map((cat) => (
-            <Button
+            <button
               key={cat.id}
-              variant={selectedCategory === cat.id ? 'default' : 'outline'}
               onClick={() => setSelectedCategory(cat.id)}
-              className="whitespace-nowrap touch-btn"
+              className={cn(
+                "relative flex-shrink-0 w-32 h-40 rounded-2xl overflow-hidden shadow-sm transition-all duration-300 group",
+                selectedCategory === cat.id
+                  ? "ring-4 ring-primary ring-offset-2 scale-105 shadow-lg"
+                  : "hover:scale-105 hover:shadow-md grayscale-[0.3] hover:grayscale-0"
+              )}
             >
-              <span className="mr-2">{cat.icon}</span>
-              {cat.id === 'all' ? t('allCategories') : cat.name}
-            </Button>
+              <img
+                src={(cat as any).image}
+                alt={cat.name}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80';
+                }}
+              />
+              <div className={cn(
+                "absolute inset-0 flex flex-col items-center justify-end p-3 transition-colors duration-300",
+                selectedCategory === cat.id
+                  ? "bg-primary/40"
+                  : "bg-black/40 group-hover:bg-black/20"
+              )}>
+                <span className="text-2xl mb-1 drop-shadow-md">{cat.icon}</span>
+                <span className="text-xs font-bold text-white uppercase tracking-wider text-center drop-shadow-md">
+                  {cat.id === 'all' ? t('allCategories') : cat.name}
+                </span>
+              </div>
+            </button>
           ))}
         </div>
 

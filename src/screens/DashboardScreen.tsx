@@ -39,7 +39,9 @@ export const DashboardScreen = () => {
                   <Monitor className="w-7 h-7 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-foreground">Main POS Terminal</h3>
+                  <h3 className="text-xl font-bold text-foreground">
+                    {session ? `${session.cashier}'s Session` : 'Main POS Terminal'}
+                  </h3>
                   <div className="flex items-center gap-2 mt-1">
                     {session ? (
                       <>

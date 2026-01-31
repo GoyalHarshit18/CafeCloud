@@ -44,9 +44,14 @@ export const products: Product[] = [
   },
 ];
 
+import allCatImg from '@/assets/categories/all.png';
+import foodCatImg from '@/assets/categories/food.png';
+import bevCatImg from '@/assets/categories/beverages.png';
+import dessertCatImg from '@/assets/categories/desserts.png';
+
 export const categories = [
-  { id: 'all', name: 'All Items', icon: '🍽️' },
-  { id: 'Food', name: 'Food', icon: '🍔' },
-  { id: 'Beverages', name: 'Beverages', icon: '☕' },
-  { id: 'Desserts', name: 'Desserts', icon: '🍰' },
+  { id: 'all', name: 'All Items', icon: '🍽️', image: allCatImg },
+  { id: 'Food', name: 'Food', icon: '🍔', image: foodCatImg },
+  { id: 'Beverages', name: 'Beverages', icon: '☕', image: bevCatImg },
+  { id: 'Desserts', name: 'Desserts', icon: '🍰', image: dessertCatImg },
 ];

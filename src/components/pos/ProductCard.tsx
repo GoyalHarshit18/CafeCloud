@@ -15,6 +15,9 @@ export const ProductCard = ({ product, onAdd }: ProductCardProps) => {
           src={product.image}
           alt={product.name}
           className="product-image transition-transform duration-300 group-hover:scale-105"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80';
+          }}
         />
         <button
           onClick={onAdd}
@@ -29,7 +32,7 @@ export const ProductCard = ({ product, onAdd }: ProductCardProps) => {
           <Plus className="w-5 h-5" />
         </button>
       </div>
-      
+
       <div className="p-3">
         <h3 className="font-semibold text-foreground truncate">{product.name}</h3>
         {product.description && (

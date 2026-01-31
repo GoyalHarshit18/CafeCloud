@@ -11,8 +11,6 @@ import { LanguageProvider } from "@/context/LanguageContext";
 // Lazy Load Pages
 const LoginPage = lazy(() => import("./pages/Login").then(module => ({ default: module.LoginPage })));
 const AdminSignupPage = lazy(() => import("./pages/AdminSignup").then(module => ({ default: module.AdminSignupPage })));
-const CustomerLoginPage = lazy(() => import("./pages/CustomerLogin").then(module => ({ default: module.CustomerLoginPage })));
-const CustomerDashboardPage = lazy(() => import("./pages/CustomerDashboard").then(module => ({ default: module.CustomerDashboardPage })));
 const Home = lazy(() => import("./pages/Home").then(module => ({ default: module.Home })));
 const POSPage = lazy(() => import("./pages/POS").then(module => ({ default: module.POSPage })));
 const NotFound = lazy(() => import("./pages/NotFound")); // Default export usually
@@ -24,7 +22,6 @@ const OrderScreen = lazy(() => import("@/screens/OrderScreen").then(m => ({ defa
 const PaymentSelectionScreen = lazy(() => import("@/screens/PaymentSelectionScreen").then(m => ({ default: m.PaymentSelectionScreen })));
 const KitchenScreen = lazy(() => import("@/screens/KitchenScreen").then(m => ({ default: m.KitchenScreen })));
 const KitchenStaffScreen = lazy(() => import("@/screens/KitchenStaffScreen").then(m => ({ default: m.KitchenStaffScreen })));
-const CustomerScreen = lazy(() => import("@/screens/CustomerScreen").then(m => ({ default: m.CustomerScreen })));
 const ReportsScreen = lazy(() => import("@/screens/ReportsScreen").then(m => ({ default: m.ReportsScreen })));
 const AdminDashboardScreen = lazy(() => import("@/screens/AdminDashboardScreen").then(m => ({ default: m.AdminDashboardScreen })));
 
@@ -60,8 +57,6 @@ const App = () => (
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/admin/signup" element={<AdminSignupPage />} />
                   <Route path="/admin/dashboard" element={<AdminDashboardScreen />} />
-                  <Route path="/customer/login" element={<CustomerLoginPage />} />
-                  <Route path="/customer/dashboard" element={<CustomerDashboardPage />} />
                   <Route path="/kitchen-display" element={
                     <ProtectedRoute>
                       <KitchenStaffScreen />
@@ -80,7 +75,6 @@ const App = () => (
                     <Route path="order" element={<OrderScreen />} />
                     <Route path="payment" element={<PaymentSelectionScreen />} />
                     <Route path="kitchen" element={<KitchenScreen />} />
-                    <Route path="customer" element={<CustomerScreen />} />
                     <Route path="reports" element={<ReportsScreen />} />
                   </Route>
 

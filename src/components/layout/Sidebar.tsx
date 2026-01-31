@@ -39,7 +39,6 @@ export const Sidebar = () => {
     { id: 'dashboard', label: t('dashboard'), icon: LayoutDashboard },
     { id: 'order', label: t('orders'), icon: ShoppingBag },
     { id: 'kitchen', label: t('kitchen'), icon: ChefHat },
-    { id: 'customer', label: t('customer'), icon: Monitor },
     ...(isAdmin ? [
       { id: 'admin-dashboard', label: 'Admin Portal', icon: ShieldCheck, path: '/admin/dashboard' },
       { id: 'reports', label: t('reports'), icon: BarChart3 }

@@ -5,7 +5,7 @@ import { ChefHat, Clock, Flame, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const KitchenScreen = () => {
-  const { kdsTickets, updateKDSStatus } = usePOS();
+  const { kdsTickets } = usePOS();
   const { t } = useLanguage();
 
   const toCook = kdsTickets.filter((t) => t.status === 'to-cook');

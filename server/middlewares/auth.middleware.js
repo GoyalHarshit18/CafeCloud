@@ -19,7 +19,7 @@ export const protect = async (req, res, next) => {
             if (!req.user) {
                 return res.status(401).json({ message: 'Not authorized, user not found' });
             }
-
+            console.log(`[AUTH] User: ${req.user.username}, Branch: ${req.user.branchId}, Path: ${req.path}`);
             next();
         } catch (error) {
             console.error(error);

@@ -22,6 +22,7 @@ interface Order {
     items: OrderItem[];
     createdAt: string;
     lockedBy?: number | null;
+    tableId?: string;
 }
 
 export const KitchenStaffScreen = () => {
@@ -49,18 +50,26 @@ export const KitchenStaffScreen = () => {
 
             if (response.ok) {
                 const data = await response.json();
+                const seenTables = new Set();
                 const mappedOrders = data
-                    .filter((o: any) => ['running', 'in-kitchen', 'preparing', 'ready'].includes(o.status))
+                    .filter((o: any) => ['running', 'in-kitchen', 'preparing', 'ready', 'draft', 'paid', 'completed'].includes(o.status))
+                    .filter((o: any) => {
+                        const tableId = o.tableId || o.Table?.id;
+                        if (seenTables.has(tableId)) return false;
+                        seenTables.add(tableId);
+                        return true;
+                    })
                     .map((o: any) => {
-                        const orderId = o.id || o._id;
+                        const orderId = o.id;
                         return {
                             id: orderId.toString(),
                             ticketNumber: `ORD-${orderId.toString().padStart(4, '0')}`, // Consistent with ORD-XXXX
-                            tableNumber: o.Table?.number,
+                            tableNumber: o.Table?.number || o.tableNumber,
+                            tableId: o.tableId || o.Table?.id,
                             time: new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                             status: o.status,
                             items: o.items.map((i: any) => ({
-                                id: i.id || i._id,
+                                id: i.id,
                                 name: i.Product?.name || i.name,
                                 quantity: i.quantity,
                             })),
@@ -127,9 +136,9 @@ export const KitchenStaffScreen = () => {
         let nextStatus = '';
         let nextLockedBy = order.lockedBy;
 
-        if (['running', 'in-kitchen', 'draft'].includes(order.status)) {
+        if (['running', 'in-kitchen', 'draft', 'paid'].includes(order.status)) {
             nextStatus = 'preparing';
-            nextLockedBy = currentUser._id; // Lock it to me
+            nextLockedBy = currentUser.id; // Lock it to me
         }
         else if (order.status === 'preparing') nextStatus = 'ready';
         else if (order.status === 'ready') nextStatus = 'completed';
@@ -153,11 +162,34 @@ export const KitchenStaffScreen = () => {
 
     const getOrdersByStatus = (statusGroup: string) => {
         return orders.filter(order => {
-            if (statusGroup === 'TO_COOK') return ['running', 'in-kitchen', 'draft'].includes(order.status);
+            if (statusGroup === 'TO_COOK') return ['running', 'in-kitchen', 'draft', 'paid'].includes(order.status);
             if (statusGroup === 'PREPARING') return order.status === 'preparing';
             if (statusGroup === 'COMPLETED') return ['ready', 'completed'].includes(order.status);
             return false;
         });
+    };
+
+    const handleFreeTable = async (orderId: string) => {
+        const order: any = orders.find(o => o.id === orderId);
+        if (!order || !order.tableId) return;
+
+        try {
+            const response = await fetch(`${BASE_URL}/api/pos/tables/${order.tableId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ status: 'free' })
+            });
+
+            if (response.ok) {
+                setOrders(prev => prev.filter(o => o.id !== orderId));
+                toast({ title: "Table Released", description: `Table ${order.tableNumber} is now available.` });
+            }
+        } catch (error) {
+            console.error("Failed to free table", error);
+        }
     };
 
     return (
@@ -233,6 +265,17 @@ export const KitchenStaffScreen = () => {
                         actionIcon={<CheckCircle2 className="w-4 h-4" />}
                         headerClass="bg-status-free/10 text-status-free border-status-free/20"
                         currentUser={currentUser}
+                        getAction={(order) => {
+                            if (order.status === 'completed') {
+                                return {
+                                    label: "FREE TABLE",
+                                    icon: <LogOut className="w-4 h-4" />,
+                                    onClick: () => handleFreeTable(order.id),
+                                    className: "bg-green-600 hover:bg-green-700 text-white"
+                                };
+                            }
+                            return null;
+                        }}
                     />
                 </div>
             </main>
@@ -251,9 +294,10 @@ interface ColumnProps {
     actionIcon: React.ReactNode;
     headerClass: string;
     currentUser: any;
+    getAction?: (order: any) => any;
 }
 
-const Column = ({ title, orders, icon, onAction, onToggleItem, accent, actionLabel, actionIcon, headerClass, currentUser }: ColumnProps) => {
+const Column = ({ title, orders, icon, onAction, onToggleItem, accent, actionLabel, actionIcon, headerClass, currentUser, getAction }: ColumnProps) => {
     return (
         <div className="flex flex-col h-full bg-card rounded-2xl border border-border shadow-sm overflow-hidden text-card-foreground">
             <div className={cn("p-5 flex items-center justify-between border-b border-border", headerClass)}>
@@ -286,7 +330,7 @@ const Column = ({ title, orders, icon, onAction, onToggleItem, accent, actionLab
                                             Table {order.tableNumber}
                                         </div>
                                     )}
-                                    {order.lockedBy && String(order.lockedBy) !== String(currentUser?._id) && (
+                                    {order.lockedBy && String(order.lockedBy) !== String(currentUser?.id) && (
                                         <span className="text-[9px] font-black bg-red-500 text-white px-2 py-0.5 rounded uppercase animate-pulse">
                                             Locked by other
                                         </span>
@@ -319,17 +363,27 @@ const Column = ({ title, orders, icon, onAction, onToggleItem, accent, actionLab
                             </div>
 
                             <div className="px-4 pb-4">
-                                <Button
-                                    onClick={() => onAction(order.id)}
-                                    disabled={!!order.lockedBy && String(order.lockedBy) !== String(currentUser?._id)}
-                                    className={cn(
-                                        "w-full h-11 rounded-xl font-bold text-xs tracking-widest gap-2 shadow-sm transition-transform active:scale-95 text-white border-none",
-                                        !!order.lockedBy && String(order.lockedBy) !== String(currentUser?._id) ? "bg-slate-300 cursor-not-allowed" : accent
-                                    )}
-                                >
-                                    {!!order.lockedBy && String(order.lockedBy) !== String(currentUser?._id) ? <Clock className="w-4 h-4" /> : actionIcon}
-                                    {!!order.lockedBy && String(order.lockedBy) !== String(currentUser?._id) ? "BEING PREPARED" : actionLabel}
-                                </Button>
+                                {(() => {
+                                    const customAction = getAction?.(order);
+                                    const handleClick = customAction ? customAction.onClick : () => onAction(order.id);
+                                    const label = customAction ? customAction.label : actionLabel;
+                                    const icon = customAction ? customAction.icon : actionIcon;
+                                    const btnClass = customAction ? customAction.className : accent;
+
+                                    return (
+                                        <Button
+                                            onClick={handleClick}
+                                            disabled={!!order.lockedBy && String(order.lockedBy) !== String(currentUser?.id)}
+                                            className={cn(
+                                                "w-full h-11 rounded-xl font-bold text-xs tracking-widest gap-2 shadow-sm transition-transform active:scale-95 text-white border-none",
+                                                !!order.lockedBy && String(order.lockedBy) !== String(currentUser?.id) ? "bg-slate-300 cursor-not-allowed" : btnClass
+                                            )}
+                                        >
+                                            {!!order.lockedBy && String(order.lockedBy) !== String(currentUser?.id) ? <Clock className="w-4 h-4" /> : icon}
+                                            {!!order.lockedBy && String(order.lockedBy) !== String(currentUser?.id) ? "BEING PREPARED" : label}
+                                        </Button>
+                                    );
+                                })()}
                             </div>
                         </div>
                     ))

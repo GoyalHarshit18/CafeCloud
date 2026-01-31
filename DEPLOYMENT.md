@@ -1,34 +1,80 @@
-# Deployment Guide - Odoo Cafe POS
+# Deployment Guide for Odoo Cafe POS
 
-This guide will help you move your project from local development to production using **Supabase** (Database) and cloud hosting (e.g., Render, Vercel, or Netlify).
+This project consists of two parts:
+1.  **Frontend**: A React application (Vite)
+2.  **Backend**: A Node.js/Express server (Sequelize + PostgreSQL)
 
-## 1. Database Setup (Supabase)
-1.  Create a new project on [Supabase](https://supabase.com/).
-2.  Go to **Project Settings** > **Database**.
-3.  Copy the **URI** (Connection String) from the "Connection string" section (use the **Transaction** or **Session** mode).
-4.  It will look like: `postgres://postgres.[YOUR-PROJECT-ID]:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supabase.com:6543/postgres`
+## Prerequisites
 
-## 2. Backend Deployment (e.g., Render or Heroku)
-1.  Connect your GitHub repository.
-2.  Set the **Build Command**: `cd server && npm install`
-3.  Set the **Start Command**: `cd server && npm start`
-4.  Add the following **Environment Variables**:
-    *   `DATABASE_URL`: (Paste your Supabase URI here)
-    *   `NODE_ENV`: `production`
-    *   `JWT_SECRET`: (Generate a random long string)
-    *   `PORT`: `5000`
+-   Node.js (v18+)
+-   PostgreSQL Database (Local or Cloud like Supabase/Neon)
 
-## 3. Frontend Deployment (e.g., Vercel or Netlify)
-1.  Connect your GitHub repository.
-2.  Set the **Build Command**: `npm run build`
-3.  Set the **Output Directory**: `dist`
-4.  Add the following **Environment Variable**:
-    *   `VITE_API_URL`: (The URL of your deployed Backend, e.g., `https://your-api.onrender.com`)
+## 1. Environment Variables
 
-## 4. Final Verification
-1.  Once deployed, visit your frontend URL.
-2.  Signup a new Restaurant Admin.
-3.  Check if products and tables are created successfully.
+### Backend (`/server/.env`)
+Create a `.env` file in the `server` directory with the following variables:
 
-> [!IMPORTANT]
-> Since the database is fresh, you will need to run the `seed_products.js` script or manually add your products again in the new production environment.
+```env
+PORT=5000
+DATABASE_URL=postgres://user:password@host:port/database
+JWT_SECRET=your_jwt_secret_key
+# Optional
+NODE_ENV=production
+```
+
+### Frontend (`/.env`)
+Create a `.env` file in the root directory:
+
+```env
+VITE_API_URL=http://localhost:5000  # Or your production backend URL
+```
+
+## 2. Building for Production
+
+### Frontend
+Run the build command to generate static files in the `dist` folder:
+
+```bash
+npm run build
+```
+
+This will create a `dist` folder containing the optimized application.
+
+### Backend
+The backend runs directly with Node.js. No build step is required for the javascript code, but ensure dependencies are installed.
+
+```bash
+cd server
+npm install --production
+```
+
+## 3. Running the Application
+
+### Option A: Separate Services (Recommended for Vercel/Render)
+-   **Frontend**: Deploy the `dist` folder (or connect repo) to Vercel, Netlify, or similar platforms.
+    -   *Build Command*: `npm run build`
+    -   *Output Directory*: `dist`
+-   **Backend**: Deploy the `server` folder to Render, Railway, or Heroku.
+    -   *Start Command*: `node server.js`
+
+### Option B: Self-Hosted (Single Server)
+You can serve the frontend static files *from* the backend by adding this to `server.js` (before API routes):
+
+```javascript
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Serve static files from the 'dist' folder (you need to copy dist to server/dist)
+app.use(express.static(path.join(__dirname, '../dist')));
+
+// Serve React App for any other route (SPA Fallback)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
+});
+```
+
+## 4. Database Setup
+The application uses Sequelize to sync the database automatically on start.
+Ensure your `DATABASE_URL` is correct.

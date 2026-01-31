@@ -58,17 +58,22 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       if (response.ok) {
         const data = await response.json();
+        console.log('[POSContext] Fetched Floors:', data.map((f: any) => ({ name: f.name, tables: f.tables.map((t: any) => `${t.number}:${t.status}`) })));
         const mappedFloors = data.map((f: any) => ({
-          id: f.id,
+          id: f.id.toString(),
           name: f.name,
           tables: (f.tables || []).map((t: any) => ({
-            id: t.id,
+            id: t.id.toString(),
             number: t.number,
             seats: t.seats,
             status: t.status,
-            floor: f.id
+            floor: f.id.toString()
           }))
         }));
+        const occupiedCount = mappedFloors.reduce((acc: number, f: any) => acc + f.tables.filter((t: any) => t.status === 'occupied').length, 0);
+        if (occupiedCount > 0) {
+          console.log(`Debug: Found ${occupiedCount} occupied tables`);
+        }
         setFloors(mappedFloors);
       }
     } catch (error) {
@@ -86,6 +91,7 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       if (response.ok) {
         const data = await response.json();
+        console.log(`[POSContext] Fetched ${data.length} products from backend`);
         const mappedProducts = data.map((p: any) => ({
           id: p.id,
           name: p.name,
@@ -96,6 +102,7 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             : `${BASE_URL}/public/placeholder-food.png`,
           description: p.description
         }));
+        console.log(`[POSContext] Mapped products:`, mappedProducts.map(p => `${p.name} (${p.category})`));
         setProducts(mappedProducts);
       }
     } catch (error) {
@@ -112,9 +119,18 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (response.ok) {
         const data = await response.json();
         // Only show orders that are actually in progress or ready
-        const activeOrders = data.filter((o: any) =>
-          ['running', 'preparing', 'ready', 'in-kitchen'].includes(o.status)
+        const allActiveOrders = data.filter((o: any) =>
+          ['running', 'preparing', 'ready', 'in-kitchen', 'paid'].includes(o.status)
         );
+
+        // Filter duplicates: Keep only the latest order per table
+        const seenTables = new Set();
+        const activeOrders = allActiveOrders.filter((o: any) => {
+          const tableId = o.tableId || o.Table?.id;
+          if (seenTables.has(tableId)) return false;
+          seenTables.add(tableId);
+          return true;
+        });
 
         const tickets: KDSTicket[] = activeOrders.map((order: any) => {
           const dbId = (order.id || order._id).toString();
@@ -184,8 +200,11 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       fetchKDSTickets();
       checkActiveSession();
 
-      const kdsInterval = setInterval(fetchKDSTickets, 5000);
-      return () => clearInterval(kdsInterval);
+      const syncInterval = setInterval(() => {
+        fetchKDSTickets();
+        fetchFloors(); // Fetch floors periodically for real-time updates
+      }, 2000); // 2 seconds for better real-time feel
+      return () => clearInterval(syncInterval);
     }
   }, [fetchFloors, fetchProducts, fetchKDSTickets, checkActiveSession]);
 
@@ -277,9 +296,35 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [session, navigate]);
 
-  const selectTable = useCallback((table: Table | null) => {
+  const selectTable = useCallback(async (table: Table | null) => {
     setSelectedTable(table);
-    if (table) {
+    if (table && table.status === 'occupied') {
+      try {
+        const response = await fetch(`${BASE_URL}/api/orders/table/${table.id}`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (response.ok) {
+          const orderData = await response.json();
+          const mappedOrder = (orderData.items || []).map((item: any) => ({
+            product: {
+              id: item.productId.toString(),
+              name: item.name,
+              price: parseFloat(item.price),
+              category: 'Food', // Fallback or fetch from item.Product if included
+              image: item.Product?.image || ''
+            },
+            quantity: item.quantity,
+            notes: item.notes || ''
+          }));
+          setCurrentOrder(mappedOrder);
+        } else {
+          setCurrentOrder([]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch table items:', error);
+        setCurrentOrder([]);
+      }
+    } else {
       setCurrentOrder([]);
     }
   }, []);
@@ -302,6 +347,7 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             table.id === tableId ? { ...table, status } : table
           )
         })));
+        await fetchFloors();
       }
     } catch (error) {
       console.error('Failed to update table status:', error);
@@ -420,6 +466,7 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
         toast({ title: "Sent to Kitchen", description: `Order ${dbId} created successfully.` });
         clearOrder();
+        await fetchFloors();
       } else {
         const err = await response.json();
         toast({ title: "Order Failed", description: err.message || "Could not save order to database.", variant: "destructive" });
@@ -452,18 +499,22 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Map KDS status to Order status enums if different
       // KDS: to-cook, preparing, completed
       // Order: pending, cooking, ready, served (or similar)
-      let kitchenStatus = 'pending';
-      if (status === 'preparing') kitchenStatus = 'cooking';
-      if (status === 'completed') kitchenStatus = 'ready';
+      let nextStatus = 'running';
+      if (status === 'preparing') nextStatus = 'preparing';
+      if (status === 'completed') nextStatus = 'ready';
 
-      await fetch(`${BASE_URL}/api/orders/${orderId}`, {
+      const response = await fetch(`${BASE_URL}/api/orders/${orderId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ kitchenStatus })
+        body: JSON.stringify({ status: nextStatus })
       });
+
+      if (response.ok) {
+        await fetchKDSTickets();
+      }
     } catch (error) {
       console.error("Failed to update KDS status on server");
       // Revert? For now, just log.
@@ -499,6 +550,7 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             totalSales: prev.totalSales + tableOrder.total,
             ordersCount: prev.ordersCount + 1,
           } : null);
+          await fetchFloors();
         }
       } catch (error) {
         console.error('Failed to process payment in DB:', error);

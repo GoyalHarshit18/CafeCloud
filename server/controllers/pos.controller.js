@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import Floor from '../models/Floor.js';
 import Table from '../models/Table.js';
 import Product from '../models/Product.js';
@@ -5,6 +6,7 @@ import Product from '../models/Product.js';
 export const getFloors = async (req, res) => {
     try {
         const branchId = req.user.branchId;
+        console.log(`[GET /floors] User: ${req.user.username}, BranchId: ${branchId}`);
         const floors = await Floor.findAll({
             where: branchId ? { branchId } : {},
             include: [{
@@ -13,8 +15,11 @@ export const getFloors = async (req, res) => {
                 attributes: ['id', 'number', 'seats', 'status']
             }]
         });
+        console.log(`[GET /floors] Found ${floors.length} floors. Statuses:`,
+            floors.flatMap(f => f.tables.map(t => `T${t.number}:${t.status}`)));
         res.status(200).json(floors);
     } catch (error) {
+        console.error("[GET /floors] Error:", error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -57,7 +62,7 @@ export const updateTableStatus = async (req, res) => {
 
         table.status = status;
         await table.save();
-
+        console.log(`[PATCH /tables/${tableId}] Status updated to: ${status}`);
         res.status(200).json(table);
     } catch (error) {
         console.error("Update Table Status Error:", error);
@@ -81,11 +86,27 @@ export const createTable = async (req, res) => {
 export const getProducts = async (req, res) => {
     try {
         const branchId = req.user.branchId;
+        console.log(`[DEBUG /products] User: ${req.user.username}, req.user.branchId: ${branchId} (type: ${typeof branchId})`);
+
         const products = await Product.findAll({
-            where: { isAvailable: true, ...(branchId ? { branchId } : {}) }
+            where: {
+                isAvailable: true,
+                [Op.or]: [
+                    { branchId: branchId },
+                    { branchId: null }
+                ]
+            }
         });
+
+        if (products.length === 0 && branchId) {
+            const allCount = await Product.count();
+            console.log(`[DEBUG /products] No products for branch ${branchId}. Total products in DB: ${allCount}`);
+        }
+
+        console.log(`[GET /products] Found ${products.length} products`);
         res.status(200).json(products);
     } catch (error) {
+        console.error("[GET /products] Error:", error);
         res.status(500).json({ message: error.message });
     }
 };
