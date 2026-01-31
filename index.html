@@ -11,6 +11,21 @@
   <meta name="theme-color" content="#8B5CF6" />
   <link rel="icon" href="data:," />
 </head>
+<script>
+  window.addEventListener('error', function(event) {
+    var msg = document.createElement('div');
+    msg.style.cssText = 'position:fixed;top:0;left:0;width:100%;background:red;color:white;z-index:10000;padding:20px;font-family:monospace;white-space:pre-wrap;';
+    msg.innerText = 'RUNTIME ERROR: ' + event.message + '\nat ' + event.filename + ':' + event.lineno;
+    document.body.appendChild(msg);
+    console.error('Captured Error:', event);
+  });
+  window.addEventListener('unhandledrejection', function(event) {
+    var msg = document.createElement('div');
+    msg.style.cssText = 'position:fixed;top:50%;left:0;width:100%;background:orange;color:black;z-index:10000;padding:20px;font-family:monospace;white-space:pre-wrap;';
+    msg.innerText = 'PROMISE REJECTION: ' + event.reason;
+    document.body.appendChild(msg);
+  });
+</script>
 
 <body>
   <div id="root"></div>
