@@ -38,36 +38,61 @@ export const AdminDashboardScreen = () => {
 
     useEffect(() => {
         const token = localStorage.getItem('token');
-        if (!token) navigate('/login');
-        fetchStaff();
-        fetchStats();
+        if (!token) {
+            navigate('/login');
+            return;
+        }
+
+        setLoading(true);
+        Promise.all([
+            fetchStaff(),
+            fetchStats()
+        ]).finally(() => setLoading(false));
     }, []);
 
     const fetchStats = async () => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
         try {
             const response = await fetch(`${BASE_URL}/api/admin/stats`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                signal: controller.signal
             });
             if (response.ok) {
                 const data = await response.json();
                 setStats(data);
             }
-        } catch (error) {
-            console.error("Failed to fetch stats");
+        } catch (error: any) {
+            if (error.name === 'AbortError') {
+                console.error("Stats fetch timed out");
+            } else {
+                console.error("Failed to fetch stats");
+            }
+        } finally {
+            clearTimeout(timeout);
         }
     };
 
     const fetchStaff = async () => {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
         try {
             const response = await fetch(`${BASE_URL}/api/admin/staff`, {
-                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                signal: controller.signal
             });
             if (response.ok) {
                 const data = await response.json();
                 setStaffList(data);
             }
-        } catch (error) {
-            console.error("Failed to fetch staff");
+        } catch (error: any) {
+            if (error.name === 'AbortError') {
+                console.error("Staff fetch timed out");
+            } else {
+                console.error("Failed to fetch staff");
+            }
+        } finally {
+            clearTimeout(timeout);
         }
     };
 
@@ -171,7 +196,9 @@ export const AdminDashboardScreen = () => {
                         <Users className="w-4 h-4 text-blue-600" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.staff}</div>
+                        <div className="text-2xl font-bold">
+                            {loading ? <span className="animate-pulse opacity-20">...</span> : stats.staff}
+                        </div>
                         <p className="text-xs text-muted-foreground">Active members</p>
                     </CardContent>
                 </Card>
@@ -181,7 +208,9 @@ export const AdminDashboardScreen = () => {
                         <ShoppingBag className="w-4 h-4 text-purple-600" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.products}</div>
+                        <div className="text-2xl font-bold">
+                            {loading ? <span className="animate-pulse opacity-20">...</span> : stats.products}
+                        </div>
                         <p className="text-xs text-muted-foreground">Catalog items</p>
                     </CardContent>
                 </Card>
@@ -191,7 +220,9 @@ export const AdminDashboardScreen = () => {
                         <Layers className="w-4 h-4 text-orange-600" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{stats.floors}</div>
+                        <div className="text-2xl font-bold">
+                            {loading ? <span className="animate-pulse opacity-20">...</span> : stats.floors}
+                        </div>
                         <p className="text-xs text-muted-foreground">Layout zones</p>
                     </CardContent>
                 </Card>
@@ -201,7 +232,9 @@ export const AdminDashboardScreen = () => {
                         <TrendingUp className="w-4 h-4 text-green-600" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">₹{stats.sales}</div>
+                        <div className="text-2xl font-bold">
+                            ₹{loading ? <span className="animate-pulse opacity-20">...</span> : stats.sales}
+                        </div>
                         <p className="text-xs text-muted-foreground">Current session</p>
                     </CardContent>
                 </Card>

@@ -144,19 +144,22 @@ export const removeStaff = async (req, res) => {
 export const getDashboardStats = async (req, res) => {
     const branchId = req.user.branchId;
     try {
-        const staffCount = await User.count({ where: { branchId } });
-        const productCount = await Product.count({ where: { branchId } });
-        const floorCount = await Floor.count({ where: { branchId } });
+        const [staffCount, productCount, floorCount] = await Promise.all([
+            User.count({ where: { branchId } }),
+            Product.count({ where: { branchId } }),
+            Floor.count({ where: { branchId } })
+        ]);
 
-        // You could add sales logic here later
+        console.log(`[Stats] Branch: ${branchId} - Staff: ${staffCount}, Products: ${productCount}, Floors: ${floorCount}`);
+
         res.json({
             staff: staffCount,
             products: productCount,
             floors: floorCount,
-            sales: 0 // Placeholder for real sales logic
+            sales: 0 // Placeholder
         });
     } catch (error) {
         console.error("Stats Error:", error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };

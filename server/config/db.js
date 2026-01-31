@@ -14,13 +14,18 @@ const sequelize = process.env.DATABASE_URL
         require: true,
         rejectUnauthorized: false
       },
-      keepAlive: true
+      keepAlive: true,
+      connectTimeout: 60000 // 60s timeout
     },
     pool: {
       max: 10,
       min: 0,
       acquire: 60000,
       idle: 10000
+    },
+    retry: {
+      match: [/Deadlock/i, /SequelizeConnectionError/i, /SequelizeConnectionRefusedError/i, /SequelizeHostNotFoundError/i, /SequelizeHostNotReachableError/i, /SequelizeInvalidConnectionError/i, /SequelizeConnectionTimedOutError/i, /TimeoutError/i],
+      max: 3
     }
   })
   : new Sequelize(
