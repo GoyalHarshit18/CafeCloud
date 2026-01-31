@@ -27,17 +27,28 @@ app.use(cors({
 }));
 app.use('/public', express.static('public'));
 
-// ✅ ADD THIS
+// ✅ Health Check with Versioning
 app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok' });
+    res.status(200).json({ status: 'ok', version: '1.0.2' });
 });
 
 app.get('/health/db', async (req, res) => {
+    console.log('Health check: Pinging Database...');
     try {
         await sequelize.authenticate();
-        res.status(200).json({ status: 'Database connected', dialect: sequelize.getDialect() });
+        console.log('Health check: Database reachable');
+        res.status(200).json({
+            status: 'Database connected',
+            version: '1.0.2',
+            dialect: sequelize.getDialect()
+        });
     } catch (error) {
-        res.status(500).json({ status: 'Database disconnected', error: error.message });
+        console.error('Health check: Database connection failed:', error.message);
+        res.status(500).json({
+            status: 'Database disconnected',
+            version: '1.0.2',
+            error: error.message
+        });
     }
 });
 
