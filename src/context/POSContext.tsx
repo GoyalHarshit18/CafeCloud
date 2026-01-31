@@ -31,6 +31,7 @@ interface POSContextType {
 
   currentScreen: string;
   setCurrentScreen: (screen: string) => void;
+  isFloorsLoading: boolean;
 }
 
 const POSContext = createContext<POSContextType | undefined>(undefined);
@@ -47,10 +48,12 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [orders, setOrders] = useState<Order[]>([]);
   const [kdsTickets, setKdsTickets] = useState<KDSTicket[]>([]);
   const [orderCounter, setOrderCounter] = useState(1001);
+  const [isFloorsLoading, setIsFloorsLoading] = useState(true);
 
   // Fetch floors from backend
   const fetchFloors = useCallback(async () => {
     try {
+      setIsFloorsLoading(true);
       const response = await fetch(`${BASE_URL}/api/pos/floors`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -58,7 +61,12 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       if (response.ok) {
         const data = await response.json();
-        console.log('[POSContext] Fetched Floors:', data.map((f: any) => ({ name: f.name, tables: f.tables.map((t: any) => `${t.number}:${t.status}`) })));
+        // Safe logging to prevent crash if tables are missing
+        console.log('[POSContext] Fetched Floors:', data.map((f: any) => ({
+          name: f.name,
+          tables: (f.tables || []).map((t: any) => `${t.number}:${t.status}`)
+        })));
+
         const mappedFloors = data.map((f: any) => ({
           id: f.id.toString(),
           name: f.name,
@@ -70,14 +78,12 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             floor: f.id.toString()
           }))
         }));
-        const occupiedCount = mappedFloors.reduce((acc: number, f: any) => acc + f.tables.filter((t: any) => t.status === 'occupied').length, 0);
-        if (occupiedCount > 0) {
-          console.log(`Debug: Found ${occupiedCount} occupied tables`);
-        }
         setFloors(mappedFloors);
       }
     } catch (error) {
       console.error('Failed to fetch floors:', error);
+    } finally {
+      setIsFloorsLoading(false);
     }
   }, []);
 
@@ -586,6 +592,7 @@ export const POSProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         completePayment,
         currentScreen,
         setCurrentScreen,
+        isFloorsLoading,
       }}
     >
       {children}

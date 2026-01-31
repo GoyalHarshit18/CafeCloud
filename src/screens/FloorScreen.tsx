@@ -6,7 +6,7 @@ import { ArrowRight, Grid3X3, Filter, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const FloorScreen = () => {
-    const { floors, selectTable, selectedTable, kdsTickets, setCurrentScreen, updateTableStatus } = usePOS();
+    const { floors, selectTable, selectedTable, kdsTickets, setCurrentScreen, updateTableStatus, isFloorsLoading } = usePOS();
     const [selectedFloor, setSelectedFloor] = useState<string | null>(null);
     const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
@@ -16,12 +16,29 @@ export const FloorScreen = () => {
         }
     }, [floors, selectedFloor]);
 
-    if (floors.length === 0 || !selectedFloor) {
+    if (isFloorsLoading) {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
         );
+    }
+
+    if (floors.length === 0) {
+        return (
+            <div className="text-center py-20 bg-card rounded-2xl border border-dashed border-border m-6">
+                <Grid3X3 className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-20" />
+                <h2 className="text-xl font-semibold mb-2">No Floor Layout Found</h2>
+                <p className="text-muted-foreground mb-6">You haven't added any floors or tables yet.<br />Please go to the Admin Dashboard to setup your restaurant.</p>
+                <Button onClick={() => window.location.href = '/admin/dashboard'}>
+                    Go to Admin Dashboard
+                </Button>
+            </div>
+        );
+    }
+
+    if (!selectedFloor) {
+        return null;
     }
 
     const currentFloor = floors.find((f) => f.id === selectedFloor)!;
