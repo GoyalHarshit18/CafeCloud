@@ -32,6 +32,10 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', version: '1.0.2' });
 });
 
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'ok', version: '1.0.2', proxied: true });
+});
+
 app.get('/health/db', async (req, res) => {
     console.log('Health check: Pinging Database...');
     try {
