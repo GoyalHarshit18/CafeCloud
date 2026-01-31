@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
 import {
-    Users, LayoutGrid, Coffee, BarChart3, LogOut, Plus, Trash2, ShieldCheck, MapPin
+    Users, LayoutGrid, Coffee, BarChart3, LogOut, Plus, Trash2, ShieldCheck, MapPin,
+    TrendingUp, ShoppingBag, Layers, Edit2
 } from 'lucide-react';
 import { usePOS } from '@/context/POSContext'; // Reuse for floor/products if possible, or fetch directly
 import { AdminFloorManager } from '@/components/admin/AdminFloorManager';
@@ -29,11 +30,32 @@ export const AdminDashboardScreen = () => {
     const [newStaff, setNewStaff] = useState({ username: '', email: '', password: '', role: 'cashier' });
     const [isAddStaffOpen, setIsAddStaffOpen] = useState(false);
 
+    const [stats, setStats] = useState({ staff: 0, products: 0, floors: 0, sales: 0 });
+
+    // Staff Edit State
+    const [editingStaff, setEditingStaff] = useState<any>(null);
+    const [isEditStaffOpen, setIsEditStaffOpen] = useState(false);
+
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (!token) navigate('/login');
         fetchStaff();
+        fetchStats();
     }, []);
+
+    const fetchStats = async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/api/admin/stats`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setStats(data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch stats");
+        }
+    };
 
     const fetchStaff = async () => {
         try {
@@ -78,6 +100,29 @@ export const AdminDashboardScreen = () => {
         }
     };
 
+    const handleUpdateStaff = async () => {
+        try {
+            const response = await fetch(`${BASE_URL}/api/admin/staff/${editingStaff.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify(editingStaff)
+            });
+            if (response.ok) {
+                toast({ title: "Staff Updated" });
+                setIsEditStaffOpen(false);
+                fetchStaff();
+            } else {
+                const data = await response.json();
+                toast({ title: "Update Failed", description: data.message, variant: "destructive" });
+            }
+        } catch (error: any) {
+            toast({ title: "Network Error", description: error.message, variant: "destructive" });
+        }
+    };
+
     const handleDeleteStaff = async (id: number) => {
         if (!confirm("Are you sure?")) return;
         try {
@@ -88,6 +133,7 @@ export const AdminDashboardScreen = () => {
             if (response.ok) {
                 toast({ title: "Staff Removed" });
                 fetchStaff();
+                fetchStats(); // Update stats after delete
             }
         } catch (error) {
             console.error(error);
@@ -116,6 +162,50 @@ export const AdminDashboardScreen = () => {
                     <LogOut className="w-4 h-4 mr-2" /> Logout
                 </Button>
             </header>
+
+            {/* Quick Stats Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-200">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">Total Staff</CardTitle>
+                        <Users className="w-4 h-4 text-blue-600" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.staff}</div>
+                        <p className="text-xs text-muted-foreground">Active members</p>
+                    </CardContent>
+                </Card>
+                <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border-purple-200">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">Products</CardTitle>
+                        <ShoppingBag className="w-4 h-4 text-purple-600" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.products}</div>
+                        <p className="text-xs text-muted-foreground">Catalog items</p>
+                    </CardContent>
+                </Card>
+                <Card className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-orange-200">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">Floors</CardTitle>
+                        <Layers className="w-4 h-4 text-orange-600" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{stats.floors}</div>
+                        <p className="text-xs text-muted-foreground">Layout zones</p>
+                    </CardContent>
+                </Card>
+                <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-200">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+                        <TrendingUp className="w-4 h-4 text-green-600" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">₹{stats.sales}</div>
+                        <p className="text-xs text-muted-foreground">Current session</p>
+                    </CardContent>
+                </Card>
+            </div>
 
             <Tabs defaultValue="staff" value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                 <TabsList className="bg-card p-1 border border-border h-auto grid grid-cols-2 md:grid-cols-4 gap-2 w-full max-w-4xl mx-auto">
@@ -193,7 +283,10 @@ export const AdminDashboardScreen = () => {
                                             <TableCell>{staff.email}</TableCell>
                                             <TableCell className="capitalize">{staff.role}</TableCell>
                                             <TableCell><span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span></TableCell>
-                                            <TableCell className="text-right">
+                                            <TableCell className="text-right space-x-2">
+                                                <Button variant="ghost" size="icon" onClick={() => { setEditingStaff(staff); setIsEditStaffOpen(true); }} className="text-muted-foreground hover:text-primary">
+                                                    <Edit2 className="w-4 h-4" />
+                                                </Button>
                                                 {staff.role !== 'admin' && (
                                                     <Button variant="ghost" size="icon" onClick={() => handleDeleteStaff(staff.id)} className="text-destructive hover:bg-destructive/10">
                                                         <Trash2 className="w-4 h-4" />
@@ -207,6 +300,41 @@ export const AdminDashboardScreen = () => {
                         </CardContent>
                     </Card>
                 </TabsContent>
+
+                {/* Edit Staff Dialog */}
+                <Dialog open={isEditStaffOpen} onOpenChange={setIsEditStaffOpen}>
+                    <DialogContent>
+                        <DialogHeader><DialogTitle>Edit Staff Member</DialogTitle></DialogHeader>
+                        {editingStaff && (
+                            <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                    <Label>Name</Label>
+                                    <Input value={editingStaff.username} onChange={e => setEditingStaff({ ...editingStaff, username: e.target.value })} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Email</Label>
+                                    <Input value={editingStaff.email} onChange={e => setEditingStaff({ ...editingStaff, email: e.target.value })} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Role</Label>
+                                    <Select value={editingStaff.role} onValueChange={v => setEditingStaff({ ...editingStaff, role: v })}>
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="cashier">Cashier</SelectItem>
+                                            <SelectItem value="kitchen">Kitchen Staff</SelectItem>
+                                            <SelectItem value="admin">Admin</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>New Password (Optional)</Label>
+                                    <Input type="password" placeholder="Leave blank to keep same" onChange={e => setEditingStaff({ ...editingStaff, password: e.target.value })} />
+                                </div>
+                                <Button onClick={handleUpdateStaff} className="w-full">Update Details</Button>
+                            </div>
+                        )}
+                    </DialogContent>
+                </Dialog>
 
                 {/* Placeholders for other tabs */}
                 <TabsContent value="floors">
