@@ -8,6 +8,11 @@ import sequelize from '../config/db.js';
 export const getReportsByPeriod = async (req, res) => {
     try {
         const { period } = req.params;
+        const branchId = req.user.branchId;
+
+        if (!branchId) {
+            return res.status(403).json({ message: 'Branch ID required for reports' });
+        }
 
         // Calculate date range based on period
         const now = new Date();
@@ -33,6 +38,7 @@ export const getReportsByPeriod = async (req, res) => {
         // Fetch paid orders within the period
         const orders = await Order.findAll({
             where: {
+                branchId,
                 status: 'paid',
                 paidAt: {
                     [Op.gte]: startDate

@@ -57,7 +57,11 @@ const App = () => (
                   <Route path="/" element={<Home />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/admin/signup" element={<AdminSignupPage />} />
-                  <Route path="/admin/dashboard" element={<AdminDashboardScreen />} />
+                  <Route path="/admin/dashboard" element={
+                    <ProtectedRoute>
+                      <AdminDashboardScreen />
+                    </ProtectedRoute>
+                  } />
                   <Route path="/kitchen-display" element={
                     <ProtectedRoute>
                       <KitchenStaffScreen />

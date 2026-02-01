@@ -43,6 +43,21 @@ export const AdminDashboardScreen = () => {
             return;
         }
 
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr);
+                if (user.role !== 'admin') {
+                    toast({ title: "Access Denied", description: "Admin privileges required.", variant: "destructive" });
+                    navigate('/login');
+                    return;
+                }
+            } catch (e) {
+                navigate('/login');
+                return;
+            }
+        }
+
         setLoading(true);
         Promise.all([
             fetchStaff(),

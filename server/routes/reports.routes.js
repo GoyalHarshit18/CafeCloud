@@ -1,9 +1,9 @@
 import express from 'express';
 import { getReportsByPeriod } from '../controllers/reports.controller.js';
-import { protect } from '../middlewares/auth.middleware.js';
+import { protect, admin } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
-router.get('/:period', protect, getReportsByPeriod);
+router.get('/:period', protect, admin, getReportsByPeriod);
 
 export default router;

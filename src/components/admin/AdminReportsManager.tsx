@@ -2,29 +2,45 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { IndianRupee, Users, TrendingUp, Calendar } from 'lucide-react';
+import { BASE_URL, getAuthToken } from '@/lib/api';
 
 export const AdminReportsManager = () => {
     const [stats, setStats] = useState({ totalSales: 0, totalOrders: 0, activeTables: 0 });
     const [staffSales, setStaffSales] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
     const [filter, setFilter] = useState('today'); // today, week, month
 
     useEffect(() => {
-        // Mock data or fetch real stats
-        // In a real app, we'd fetch from /api/admin/stats?period=today
-        const mockStats = {
-            totalSales: 24500,
-            totalOrders: 45,
-            activeTables: 3
-        };
-        const mockStaffSales = [
-            { id: 1, name: 'John Doe', sales: 12000, orders: 20 },
-            { id: 2, name: 'Jane Smith', sales: 8500, orders: 15 },
-            { id: 3, name: 'Bob Wilson', sales: 4000, orders: 10 }
-        ];
-
-        setStats(mockStats);
-        setStaffSales(mockStaffSales);
+        fetchReports();
     }, [filter]);
+
+    const fetchReports = async () => {
+        setLoading(true);
+        try {
+            const token = getAuthToken();
+            if (!token) return;
+
+            const response = await fetch(`${BASE_URL}/api/reports/${filter}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setStats({
+                    totalSales: data.kpis.totalRevenue,
+                    totalOrders: data.kpis.totalOrders,
+                    activeTables: 0 // Will integrate live tables later if needed
+                });
+                // Note: staffSales logic can be expanded here if the backend provides it, 
+                // for now we'll show empty or keep placeholders if not in API.
+                // The current API doesn't return staff performance, so we'll just update KPI.
+            }
+        } catch (error) {
+            console.error("Failed to fetch reports:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="space-y-6">

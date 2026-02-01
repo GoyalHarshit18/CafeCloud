@@ -4,6 +4,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import Floor from '../models/Floor.js';
 import Product from '../models/Product.js';
+import Order from '../models/Order.js';
+import { Op } from 'sequelize';
 // Helper to generate token (duplicate from auth controller, could refactor)
 const generateToken = (id, role, branchId, secret, expiresIn) => {
     return jwt.sign({ id, role, branchId }, secret, { expiresIn });
@@ -144,19 +146,28 @@ export const removeStaff = async (req, res) => {
 export const getDashboardStats = async (req, res) => {
     const branchId = req.user.branchId;
     try {
-        const [staffCount, productCount, floorCount] = await Promise.all([
+        const [staffCount, productCount, floorCount, totalSales] = await Promise.all([
             User.count({ where: { branchId } }),
             Product.count({ where: { branchId } }),
-            Floor.count({ where: { branchId } })
+            Floor.count({ where: { branchId } }),
+            Order.sum('total', {
+                where: {
+                    branchId,
+                    status: 'paid',
+                    createdAt: {
+                        [Op.gte]: new Date(new Date().setHours(0, 0, 0, 0)) // Today's sales
+                    }
+                }
+            })
         ]);
 
-        console.log(`[Stats] Branch: ${branchId} - Staff: ${staffCount}, Products: ${productCount}, Floors: ${floorCount}`);
+        console.log(`[Stats] Branch: ${branchId} - Staff: ${staffCount}, Products: ${productCount}, Floors: ${floorCount}, Sales: ${totalSales}`);
 
         res.json({
             staff: staffCount,
             products: productCount,
             floors: floorCount,
-            sales: 0 // Placeholder
+            sales: totalSales || 0
         });
     } catch (error) {
         console.error("Stats Error:", error);
