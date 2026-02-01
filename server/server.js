@@ -50,7 +50,7 @@ app.get('/health/db', async (req, res) => {
         console.error('Health check: Database connection failed:', error.message);
         res.status(500).json({
             status: 'Database disconnected',
-            version: '1.0.2',
+            version: '1.0.3',
             error: error.message
         });
     }
@@ -80,10 +80,13 @@ const startServer = async () => {
 
     try {
         await connectWithRetry();
-        // Only alter table if in development. Production should use migrations or manual sync.
-        const shouldAlter = process.env.NODE_ENV === 'development';
+        // Only alter table if explicitly in development and NOT on Render
+        const isRender = process.env.RENDER || process.env.RENDER_SERVICE_ID;
+        const shouldAlter = process.env.NODE_ENV === 'development' && !isRender;
+
+        console.log(`Attempting DB Sync (alter: ${shouldAlter})...`);
         await sequelize.sync({ alter: shouldAlter });
-        console.log(`Database synced (alter: ${shouldAlter})`);
+        console.log(`Database synced successfully.`);
     } catch (err) {
         console.error('DB Sync Error:', err.message);
     }

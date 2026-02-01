@@ -19,8 +19,8 @@ const sequelize = process.env.DATABASE_URL
       family: 4 // Force IPv4 to prevent internalConnectMultiple timeouts on Render
     },
     pool: {
-      max: 15, // Increase pool size for parallel dashboard queries
-      min: 1,
+      max: 5, // Lowered from 15 to avoid hitting connection limits on Render
+      min: 0,
       acquire: 60000,
       idle: 10000,
       evict: 1000
