@@ -15,13 +15,15 @@ const sequelize = process.env.DATABASE_URL
         rejectUnauthorized: false
       },
       keepAlive: true,
-      connectTimeout: 60000 // 60s timeout
+      connectTimeout: 60000, // 60s timeout
+      family: 4 // Force IPv4 to prevent internalConnectMultiple timeouts on Render
     },
     pool: {
-      max: 10,
-      min: 0,
+      max: 15, // Increase pool size for parallel dashboard queries
+      min: 1,
       acquire: 60000,
-      idle: 10000
+      idle: 10000,
+      evict: 1000
     },
     retry: {
       match: [/Deadlock/i, /SequelizeConnectionError/i, /SequelizeConnectionRefusedError/i, /SequelizeHostNotFoundError/i, /SequelizeHostNotReachableError/i, /SequelizeInvalidConnectionError/i, /SequelizeConnectionTimedOutError/i, /TimeoutError/i],
