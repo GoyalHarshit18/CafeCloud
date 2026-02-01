@@ -58,7 +58,7 @@ export const Sidebar = () => {
     <>
       <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="Cafe Cloud" className="w-10 h-10 object-contain" />
+          <img src="/logo.png" alt="Cafe Cloud" className="h-12 w-12 object-cover rounded-full -ml-2" />
           {!collapsed && (
             <div className="animate-fade-in">
               <h1 className="font-bold text-sidebar-foreground">Cafe Cloud</h1>

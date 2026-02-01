@@ -148,7 +148,7 @@ export const CustomerDisplayScreen = () => {
             <header className="bg-card border-b border-border shadow-sm">
                 <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <img src="/logo.png" alt="Cafe Cloud" className="h-12 w-auto" />
+                        <img src="/logo.png" alt="Cafe Cloud" className="h-12 w-12 object-cover rounded-full" />
                     </div>
                     <div className="flex items-center gap-2">
                         <Button
