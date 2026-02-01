@@ -90,19 +90,21 @@ const startServer = async () => {
         await sequelize.sync({ alter: true });
         console.log(`Database synced successfully.`);
 
-        // Auto-seed if no users exist
-        const userCount = await User.count();
-        if (userCount === 0) {
-            console.log('No users found. Seeding default data...');
-
-            // 1. Create Branch
-            const branch = await Branch.create({
+        // 1. Ensure a Branch exists
+        let branch = await Branch.findOne();
+        if (!branch) {
+            console.log('Seeding default branch...');
+            branch = await Branch.create({
                 name: 'Main Branch',
                 address: 'Default City',
                 phone: '0000000000'
             });
+        }
 
-            // 2. Create Admin User
+        // 2. Ensure Admin User exists
+        const adminExists = await User.findOne({ where: { role: 'admin' } });
+        if (!adminExists) {
+            console.log('Seeding default admin...');
             await User.create({
                 username: 'admin',
                 email: 'admin1@gmail.com',
@@ -111,8 +113,12 @@ const startServer = async () => {
                 branchId: branch.id
             });
             console.log('Default admin created: admin1@gmail.com / 123');
+        }
 
-            // 3. Create Kitchen Staff
+        // 3. Ensure Kitchen Staff exists
+        const kitchenExists = await User.findOne({ where: { role: 'kitchen' } });
+        if (!kitchenExists) {
+            console.log('Seeding kitchen staff...');
             await User.create({
                 username: 'Kitchen Staff',
                 email: 'kitchen1@gmail.com',
@@ -121,13 +127,21 @@ const startServer = async () => {
                 branchId: branch.id
             });
             console.log('Kitchen staff created: kitchen1@gmail.com / 1234');
+        }
 
-            // 4. Create Floors
+        // 4. Ensure Floors exist
+        const floorCount = await Floor.count();
+        if (floorCount === 0) {
+            console.log('Seeding floors...');
             await Floor.create({ name: 'Ground Floor', branchId: branch.id });
             await Floor.create({ name: 'First Floor', branchId: branch.id });
             console.log('Floors created.');
+        }
 
-            // 5. Create Products
+        // 5. Ensure Products exist
+        const productCount = await Product.count();
+        if (productCount === 0) {
+            console.log('Seeding products...');
             await Product.bulkCreate([
                 { name: 'Espresso', price: 120, category: 'Coffee', description: 'Strong black coffee', branchId: branch.id },
                 { name: 'Cappuccino', price: 180, category: 'Coffee', description: 'Coffee with steamed milk foam', branchId: branch.id },
