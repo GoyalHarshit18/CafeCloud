@@ -29,11 +29,11 @@ app.use('/public', express.static('public'));
 
 // ✅ Health Check with Versioning
 app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok', version: '1.0.2' });
+    res.status(200).json({ status: 'ok', version: '1.0.3' });
 });
 
 app.get('/api/health', (req, res) => {
-    res.status(200).json({ status: 'ok', version: '1.0.2', proxied: true });
+    res.status(200).json({ status: 'ok', version: '1.0.3', proxied: true });
 });
 
 app.get('/health/db', async (req, res) => {
@@ -43,7 +43,7 @@ app.get('/health/db', async (req, res) => {
         console.log('Health check: Database reachable');
         res.status(200).json({
             status: 'Database connected',
-            version: '1.0.2',
+            version: '1.0.3',
             dialect: sequelize.getDialect()
         });
     } catch (error) {
