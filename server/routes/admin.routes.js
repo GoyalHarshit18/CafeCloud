@@ -11,4 +11,8 @@ router.put('/staff/:id', protect, admin, updateStaff);
 router.delete('/staff/:id', protect, admin, removeStaff);
 router.get('/stats', protect, admin, getDashboardStats);
 
+// TEMPORARY DEBUG ROUTE
+import { fixBranchesDebug } from '../controllers/admin.controller.js';
+router.get('/fix-branches-debug', fixBranchesDebug);
+
 export default router;
