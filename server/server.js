@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 // Bypass for self-signed certificates removed as per best practices
 import cors from 'cors';
-import sequelize from './config/db.js';
+import sequelize, { connectWithRetry } from './config/db.js';
 
 import authRoutes from './routes/auth.routes.js';
 import homeRoutes from './routes/home.routes.js';
