@@ -143,14 +143,70 @@ const startServer = async () => {
         if (productCount === 0) {
             console.log('Seeding products...');
             await Product.bulkCreate([
-                { name: 'Espresso', price: 120, category: 'Coffee', description: 'Strong black coffee', branchId: branch.id },
-                { name: 'Cappuccino', price: 180, category: 'Coffee', description: 'Coffee with steamed milk foam', branchId: branch.id },
-                { name: 'Latte', price: 200, category: 'Coffee', description: 'Creamy milk coffee', branchId: branch.id },
-                { name: 'Green Tea', price: 100, category: 'Tea', description: 'Healthy green tea', branchId: branch.id },
-                { name: 'Masala Chai', price: 80, category: 'Tea', description: 'Traditional spiced tea', branchId: branch.id },
-                { name: 'Veg Burger', price: 250, category: 'Food', description: 'Crispy veg patty burger', branchId: branch.id },
-                { name: 'Chicken Sandwich', price: 300, category: 'Food', description: 'Grilled chicken sandwich', branchId: branch.id },
-                { name: 'French Fries', price: 150, category: 'Sides', description: 'Golden crispy fries', branchId: branch.id }
+                {
+                    name: 'Espresso',
+                    price: 120,
+                    category: 'Coffee',
+                    description: 'Strong black coffee',
+                    branchId: branch.id,
+                    image: 'https://images.unsplash.com/photo-1510707513152-52462e1a3597?q=80&w=800'
+                },
+                {
+                    name: 'Cappuccino',
+                    price: 180,
+                    category: 'Coffee',
+                    description: 'Coffee with steamed milk foam',
+                    branchId: branch.id,
+                    image: 'https://images.unsplash.com/photo-1534778101976-62847782c213?q=80&w=800'
+                },
+                {
+                    name: 'Latte',
+                    price: 200,
+                    category: 'Coffee',
+                    description: 'Creamy milk coffee',
+                    branchId: branch.id,
+                    image: 'https://images.unsplash.com/photo-1536939459926-301728717817?q=80&w=800'
+                },
+                {
+                    name: 'Green Tea',
+                    price: 100,
+                    category: 'Tea',
+                    description: 'Healthy green tea',
+                    branchId: branch.id,
+                    image: 'https://images.unsplash.com/photo-1523920290228-4f321a939b4c?q=80&w=800'
+                },
+                {
+                    name: 'Masala Chai',
+                    price: 80,
+                    category: 'Tea',
+                    description: 'Traditional spiced tea',
+                    branchId: branch.id,
+                    image: 'https://images.unsplash.com/photo-1561336313-0bd5e0b27ec8?q=80&w=800'
+                },
+                {
+                    name: 'Veg Burger',
+                    price: 250,
+                    category: 'Food',
+                    description: 'Crispy veg patty burger',
+                    branchId: branch.id,
+                    image: 'https://images.unsplash.com/photo-1512152272829-e3139592d56f?q=80&w=800'
+                },
+                {
+                    name: 'Chicken Sandwich',
+                    price: 300,
+                    category: 'Food',
+                    description: 'Grilled chicken sandwich',
+                    branchId: branch.id,
+                    image: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?q=80&w=800'
+                },
+                {
+                    name: 'French Fries',
+                    price: 150,
+                    category: 'Sides',
+                    description: 'Golden crispy fries',
+                    branchId: branch.id,
+                    image: 'https://images.unsplash.com/photo-1573082801971-13b5bbce784a?q=80&w=800'
+                }
             ]);
             console.log('Sample products created.');
         }
