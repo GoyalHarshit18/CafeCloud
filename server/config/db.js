@@ -3,9 +3,62 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Parse DATABASE_URL if present to ensure options are applied correctly
-const sequelize = process.env.DATABASE_URL
-  ? new Sequelize(process.env.DATABASE_URL, {
+let finalUrl = process.env.DATABASE_URL;
+let connectionMethod = "Primary (Pooler)";
+
+// Automatic Failover Logic for Render
+const isRender = process.env.RENDER || process.env.RENDER_SERVICE_ID;
+
+if (isRender && finalUrl && finalUrl.includes('pooler.supabase.com')) {
+  console.log('[DB] Render detected with Pooler URL. Probing connection...');
+
+  // Quick probe to see if pooler is reachable
+  const probeSequelize = new Sequelize(finalUrl, {
+    dialect: 'postgres',
+    logging: false,
+    dialectOptions: {
+      ssl: { require: true, rejectUnauthorized: false },
+      connectTimeout: 5000,
+      family: 4
+    }
+  });
+
+  try {
+    // Give it 5 seconds to authenticate
+    await Promise.race([
+      probeSequelize.authenticate(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Probe timeout')), 5000))
+    ]);
+    console.log('[DB] Pooler is reachable. Using primary connection.');
+  } catch (err) {
+    console.warn('[DB] Pooler probe failed or timed out:', err.message);
+    console.log('[DB] Switching to DIRECT CONNECTION fallback...');
+
+    // Convert Pooler URL to Direct URL
+    // Pooler: postgresql://postgres.<id>:<pass>@<host>:6543/postgres
+    // Direct: postgresql://postgres:<pass>@db.<id>.supabase.co:5432/postgres
+    try {
+      const urlMatch = finalUrl.match(/postgresql:\/\/postgres\.([^:]+):([^@]+)@/);
+      if (urlMatch) {
+        const projectId = urlMatch[1];
+        const password = urlMatch[2];
+        finalUrl = `postgresql://postgres:${password}@db.${projectId}.supabase.co:5432/postgres`;
+        connectionMethod = "Fallback (Direct)";
+        console.log('[DB] Failover URL constructed successfully.');
+      } else {
+        console.error('[DB] Could not parse DATABASE_URL for failover. Using original.');
+      }
+    } catch (parseErr) {
+      console.error('[DB] Critical error parsing failover URL:', parseErr.message);
+    }
+  } finally {
+    await probeSequelize.close().catch(() => { });
+  }
+}
+
+// Initialize the main Sequelize instance
+const sequelize = finalUrl
+  ? new Sequelize(finalUrl, {
     dialect: 'postgres',
     protocol: 'postgres',
     logging: false,
@@ -15,11 +68,11 @@ const sequelize = process.env.DATABASE_URL
         rejectUnauthorized: false
       },
       keepAlive: true,
-      connectTimeout: 60000, // 60s timeout
-      family: 4 // Force IPv4 to prevent internalConnectMultiple timeouts on Render
+      connectTimeout: 60000,
+      family: 4
     },
     pool: {
-      max: 5, // Lowered from 15 to avoid hitting connection limits on Render
+      max: 5,
       min: 0,
       acquire: 60000,
       idle: 10000,
@@ -47,15 +100,15 @@ const connectWithRetry = async (retries = 5, delay = 5000) => {
   for (let i = 0; i < retries; i++) {
     try {
       await sequelize.authenticate();
-      console.log('PostgreSQL database connected via Sequelize...');
+      console.log(`[DB] PostgreSQL connected via ${connectionMethod}`);
       return;
     } catch (err) {
-      console.error(`Database connection attempt ${i + 1} failed:`, err.message);
+      console.error(`[DB] Connection attempt ${i + 1} failed (${connectionMethod}):`, err.message);
       if (i < retries - 1) {
-        console.log(`Retrying in ${delay / 1000} seconds...`);
+        console.log(`[DB] Retrying in ${delay / 1000} seconds...`);
         await new Promise(res => setTimeout(res, delay));
       } else {
-        console.error('Max retries reached. Exiting.');
+        console.error('[DB] Max retries reached. Exiting.');
         throw err;
       }
     }
@@ -63,5 +116,5 @@ const connectWithRetry = async (retries = 5, delay = 5000) => {
 };
 
 // Export both sequelize and the connect function
-export { connectWithRetry };
+export { connectWithRetry, connectionMethod };
 export default sequelize;

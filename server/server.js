@@ -44,6 +44,7 @@ app.get('/health/db', async (req, res) => {
         res.status(200).json({
             status: 'Database connected',
             version: '1.0.3',
+            method: connectionMethod,
             dialect: sequelize.getDialect()
         });
     } catch (error) {
