@@ -14,6 +14,8 @@ import adminRoutes from './routes/admin.routes.js';
 
 import User from './models/User.js';
 import Branch from './models/Branch.js';
+import Floor from './models/Floor.js';
+import Product from './models/Product.js';
 
 dotenv.config();
 
@@ -91,13 +93,16 @@ const startServer = async () => {
         // Auto-seed if no users exist
         const userCount = await User.count();
         if (userCount === 0) {
-            console.log('No users found. Seeding default admin...');
+            console.log('No users found. Seeding default data...');
+
+            // 1. Create Branch
             const branch = await Branch.create({
                 name: 'Main Branch',
                 address: 'Default City',
                 phone: '0000000000'
             });
 
+            // 2. Create Admin User
             await User.create({
                 username: 'admin',
                 email: 'admin1@gmail.com',
@@ -106,6 +111,34 @@ const startServer = async () => {
                 branchId: branch.id
             });
             console.log('Default admin created: admin1@gmail.com / 123');
+
+            // 3. Create Kitchen Staff
+            await User.create({
+                username: 'Kitchen Staff',
+                email: 'kitchen1@gmail.com',
+                password: '1234',
+                role: 'kitchen',
+                branchId: branch.id
+            });
+            console.log('Kitchen staff created: kitchen1@gmail.com / 1234');
+
+            // 4. Create Floors
+            await Floor.create({ name: 'Ground Floor', branchId: branch.id });
+            await Floor.create({ name: 'First Floor', branchId: branch.id });
+            console.log('Floors created.');
+
+            // 5. Create Products
+            await Product.bulkCreate([
+                { name: 'Espresso', price: 120, category: 'Coffee', description: 'Strong black coffee', branchId: branch.id },
+                { name: 'Cappuccino', price: 180, category: 'Coffee', description: 'Coffee with steamed milk foam', branchId: branch.id },
+                { name: 'Latte', price: 200, category: 'Coffee', description: 'Creamy milk coffee', branchId: branch.id },
+                { name: 'Green Tea', price: 100, category: 'Tea', description: 'Healthy green tea', branchId: branch.id },
+                { name: 'Masala Chai', price: 80, category: 'Tea', description: 'Traditional spiced tea', branchId: branch.id },
+                { name: 'Veg Burger', price: 250, category: 'Food', description: 'Crispy veg patty burger', branchId: branch.id },
+                { name: 'Chicken Sandwich', price: 300, category: 'Food', description: 'Grilled chicken sandwich', branchId: branch.id },
+                { name: 'French Fries', price: 150, category: 'Sides', description: 'Golden crispy fries', branchId: branch.id }
+            ]);
+            console.log('Sample products created.');
         }
 
     } catch (err) {
