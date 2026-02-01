@@ -52,38 +52,52 @@ const initDatabase = async () => {
       const ipAddress = addresses[0];
       console.log(`[DB] Resolved ${hostname} to ${ipAddress}`);
 
-      // Construct configuration with explicit IP and SNI
-      const poolerConfig = {
-        ...dbConfig,
-        host: ipAddress,
-        port: 6543, // Pooler port
-        dialectOptions: {
-          ...dbConfig.dialectOptions,
-          ssl: {
-            require: true,
-            rejectUnauthorized: false,
-            servername: hostname // CRITICAL for SNI
+      const createConnection = (port) => {
+        return new Sequelize(
+          poolerUrlParts.pathname.substring(1),
+          poolerUrlParts.username,
+          poolerUrlParts.password,
+          {
+            ...dbConfig,
+            host: ipAddress,
+            port: port,
+            dialectOptions: {
+              ...dbConfig.dialectOptions,
+              connectTimeout: 15000,
+              ssl: {
+                require: true,
+                rejectUnauthorized: false,
+                servername: hostname
+              }
+            }
           }
-        }
+        );
       };
 
-      // Probe with the forced IPv4 connection
-      const probeSequelize = new Sequelize(
-        poolerUrlParts.pathname.substring(1), // db name (usually postgres)
-        poolerUrlParts.username,
-        poolerUrlParts.password,
-        poolerConfig
-      );
+      try {
+        console.log('[DB] Attempting connection on Port 6543 (Transaction Mode)...');
+        const probe6543 = createConnection(6543);
+        await Promise.race([
+          probe6543.authenticate(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout 6543')), 15000))
+        ]);
+        console.log('[DB] Success! Connected via Port 6543 (Transaction Mode).');
+        sequelizeInstance = probe6543;
+        return sequelizeInstance;
+      } catch (err6543) {
+        console.warn(`[DB] Port 6543 failed (${err6543.message}). Retrying Port 5432 (Session Mode)...`);
 
-      // Give it 10 seconds to authenticate (bumped from 5)
-      await Promise.race([
-        probeSequelize.authenticate(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Pooler probe timeout')), 10000))
-      ]);
-
-      console.log('[DB] Pooler is reachable via IPv4. Using primary connection.');
-      sequelizeInstance = probeSequelize; // Reuse the successful instance
-      return sequelizeInstance;
+        console.log('[DB] Attempting connection on Port 5432 (Session Mode)...');
+        const probe5432 = createConnection(5432);
+        await Promise.race([
+          probe5432.authenticate(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout 5432')), 15000))
+        ]);
+        console.log('[DB] Success! Connected via Port 5432 (Session Mode).');
+        sequelizeInstance = probe5432;
+        connectionMethod = "Secondary (Session IPv4)";
+        return sequelizeInstance;
+      }
 
     } catch (err) {
       console.warn('[DB] Pooler probe failed (IPv4 forced):', err.message);
