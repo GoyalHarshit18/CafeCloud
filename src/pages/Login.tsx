@@ -98,13 +98,7 @@ export const LoginPage = () => {
       <div className="flex-1 flex flex-col justify-center px-6 lg:px-16 py-12">
         <div className="max-w-md mx-auto w-full">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xl">O</span>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Cafe Cloud</h1>
-              <p className="text-sm text-muted-foreground">Restaurant Management System</p>
-            </div>
+            <img src="/logo.png" alt="Cafe Cloud" className="h-16 w-auto" />
           </div>
 
           <div className="mb-8">

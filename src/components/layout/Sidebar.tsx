@@ -62,9 +62,8 @@ export const Sidebar = () => {
             <span className="text-primary-foreground font-bold text-lg">O</span>
           </div>
           {!collapsed && (
-            <div className="animate-fade-in">
-              <h1 className="font-bold text-sidebar-foreground">Cafe Cloud</h1>
-              <p className="text-xs text-muted-foreground">POS System</p>
+            <div className="animate-fade-in flex flex-col items-start">
+              <img src="/logo.png" alt="Cafe Cloud" className="h-12 object-contain -ml-2" />
             </div>
           )}
         </div>

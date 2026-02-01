@@ -148,13 +148,7 @@ export const CustomerDisplayScreen = () => {
             <header className="bg-card border-b border-border shadow-sm">
                 <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                            <span className="text-primary-foreground font-bold text-lg">O</span>
-                        </div>
-                        <div>
-                            <h1 className="text-lg font-bold text-foreground">Cafe Cloud</h1>
-                            <p className="text-xs text-muted-foreground">Customer Display</p>
-                        </div>
+                        <img src="/logo.png" alt="Cafe Cloud" className="h-12 w-auto" />
                     </div>
                     <div className="flex items-center gap-2">
                         <Button

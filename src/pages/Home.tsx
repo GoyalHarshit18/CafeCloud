@@ -252,10 +252,7 @@ export const Home = () => {
                         {/* Brand Section */}
                         <div className="space-y-6">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-                                    <span className="text-primary-foreground font-bold text-xl">O</span>
-                                </div>
-                                <span className="font-semibold text-2xl tracking-tight text-white">Cafe Cloud</span>
+                                <img src="/logo.png" alt="Cafe Cloud" className="h-12 w-auto" />
                             </div>
                             <p className="text-gray-400 leading-relaxed max-w-xs">
                                 Automate your cafe operations with the world's most intuitive and powerful SaaS POS solution. Crafted for excellence.
