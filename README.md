@@ -15,13 +15,6 @@ The system is designed to be **scalable, role-based, and production-ready**, clo
 
 ---
 
-## 🌐 Live Project
-
-🔗 **Live Application:**  
-https://cafe-cloud.vercel.app/
-
----
-
 ## 🛠 Tech Stack
 
 ### Frontend
@@ -124,3 +117,4 @@ https://github.com/GoyalHarshit18/Odoo-Cafe-POS
 ## 🏁 Conclusion
 
 Cafe Cloud is not just a POS system — it is a **complete restaurant operations platform** built using modern web technologies and designed for real business environments.
+
