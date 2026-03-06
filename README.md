@@ -1,140 +1,172 @@
-# ☕ Cafe Cloud
-**Premium Restaurant Management System**
+☕ Cafe Cloud
 
-ServeMate is a full-stack, ERP-inspired **Restaurant Point of Sale (POS) system** designed to handle real-world restaurant operations end-to-end.  
-It connects **cashiers, kitchen staff, and customers** through a single, unified platform, focusing on operational efficiency, transparency, and business growth.
+Premium Restaurant Management System
 
----
+ServeMate is a full-stack, ERP-inspired Restaurant Point of Sale (POS) system designed to handle real-world restaurant operations end-to-end.
+It connects cashiers, kitchen staff, and customers through a single, unified platform, focusing on operational efficiency, transparency, and business growth.
 
-## 🚀 Project Overview
+🚀 Project Overview
 
-ServeMate models the complete restaurant workflow — from order creation and payment to kitchen preparation and customer notifications.  
-The system is designed to be **scalable, role-based, and production-ready**, closely reflecting how modern restaurants operate.
+ServeMate models the complete restaurant workflow — from order creation and payment to kitchen preparation and customer notifications.
+The system is designed to be scalable, role-based, and production-ready, closely reflecting how modern restaurants operate.
 
----
+🛠️ Tech Stack
+Frontend
 
-## 🛠️ Tech Stack
+React + Vite – Fast, modern UI development
 
-### Frontend
-- **React + Vite** – Fast, modern UI development
-- **Tailwind CSS** – Clean, responsive, ERP-style design
+Tailwind CSS – Clean, responsive, ERP-style design
 
-### Backend
-- **Node.js + Express** – RESTful API and business logic
+Backend
 
-### Database
-- **PostgreSQL** – Transactional data, orders, sessions, reporting
-- **MySQL** – Structured operational data
+Node.js + Express – RESTful API and business logic
 
-This combination ensures **performance, data integrity, and scalability**.
+Database
 
----
+PostgreSQL – Transactional data, orders, sessions, reporting
 
-## 🔄 Application Workflow
+MySQL – Structured operational data
 
-### 1️⃣ Entry Flow
-- User lands on the **Home Page**
-- Navigates to **Dashboard** and logs in
-- A single **user table** is maintained
-- User access is controlled by a **role column**
+This combination ensures performance, data integrity, and scalability.
 
-### 2️⃣ Role-Based Access
+🔄 Application Workflow
+1️⃣ Entry Flow
+
+User lands on the Home Page
+
+Navigates to Dashboard and logs in
+
+A single user table is maintained
+
+User access is controlled by a role column
+
+2️⃣ Role-Based Access
+
 Users can access one of three roles:
-- **Cashier**
-- **Kitchen Staff**
-- **Customer**
+
+Cashier
+
+Kitchen Staff
+
+Customer
 
 Each role has a dedicated dashboard and workflow.
 
----
+🧑‍💼 Cashier Workflow
 
-## 🧑‍💼 Cashier Workflow
+Start a POS session from the sidebar
 
-- Start a **POS session** from the sidebar
-- Select **floor and table**
-- Add products based on customer preference
-- Capture customer details (name & phone number)
-  - Phone number acts as a primary identifier
-  - Linked to the customer role in the user table
-- Accept payment via:
-  - UPI
-  - Cash
-  - Card
-- After payment, the order is pushed to the kitchen
+Select floor and table
 
----
+Add products based on customer preference
 
-## 🍳 Kitchen Staff Workflow
+Capture customer details (name & phone number)
 
-- Orders appear in the kitchen dashboard
-- Orders move through stages:
-  - **To Cook**
-  - **Preparing**
-  - **Completed**
-- Kitchen staff update order status by interacting with order cards
-- Once completed, notifications are sent to:
-  - Cashier
-  - Customer
+Phone number acts as a primary identifier
 
----
+Linked to the customer role in the user table
 
-## 📺 Customer Experience
+Accept payment via:
 
-- View ordered food items
-- See grand total and payment status
-- Download bill
-- Receive notification when food is ready
+UPI
 
-This improves **transparency, trust, and customer satisfaction**.
+Cash
 
----
+Card
 
-## 📦 Management & Reports
+After payment, the order is pushed to the kitchen
 
-### Product Management
-- Add or remove available products dynamically
+🍳 Kitchen Staff Workflow
 
-### Floor & Table Management
-- Add or remove floors
-- Configure tables per floor
+Orders appear in the kitchen dashboard
 
-### Reports & Analytics
-- Weekly, monthly, and yearly sales reports
-- Visual insights:
-  - Most sold products
-  - Least sold products
-  - Overall revenue trends
+Orders move through stages:
 
----
+To Cook
 
-## ⭐ Unique Selling Points (USP)
+Preparing
 
-- ERP-style, end-to-end restaurant workflow
-- Real backend with relational databases
-- Role-based dashboards for clear responsibility separation
-- India-ready payment options (UPI)
-- Strong focus on operational efficiency and UX
+Completed
 
----
+Kitchen staff update order status by interacting with order cards
 
-## 📈 Business Impact
+Once completed, notifications are sent to:
+
+Cashier
+
+Customer
+
+📺 Customer Experience
+
+View ordered food items
+
+See grand total and payment status
+
+Download bill
+
+Receive notification when food is ready
+
+This improves transparency, trust, and customer satisfaction.
+
+📦 Management & Reports
+Product Management
+
+Add or remove available products dynamically
+
+Floor & Table Management
+
+Add or remove floors
+
+Configure tables per floor
+
+Reports & Analytics
+
+Weekly, monthly, and yearly sales reports
+
+Visual insights:
+
+Most sold products
+
+Least sold products
+
+Overall revenue trends
+
+⭐ Unique Selling Points (USP)
+
+ERP-style, end-to-end restaurant workflow
+
+Real backend with relational databases
+
+Role-based dashboards for clear responsibility separation
+
+India-ready payment options (UPI)
+
+Strong focus on operational efficiency and UX
+
+📈 Business Impact
 
 ServeMate helps restaurants:
-- Reduce order errors
-- Improve service speed
-- Gain actionable sales insights
-- Enhance customer comfort and trust
-- Scale operations efficiently
 
-By solving **real-world restaurant problems**, ServeMate directly contributes to business growth and better customer retention.
+Reduce order errors
 
----
+Improve service speed
 
-## 🔗 GitHub Repository
+Gain actionable sales insights
 
+Enhance customer comfort and trust
+
+Scale operations efficiently
+
+By solving real-world restaurant problems, ServeMate directly contributes to business growth and better customer retention.
+
+🔗 Project Links
+
+Live Application:
+https://cafe-cloud.vercel.app/
+
+GitHub Repository:
 https://github.com/GoyalHarshit18/Odoo-Cafe-POS
----
 
-## 🏁 Conclusion
+🏁 Conclusion
 
-ServeMate is not just a POS system — it is a **complete restaurant operations platform** built with real business needs in mind, combining modern frontend technologies with a robust backend and relational databases.
+ServeMate is not just a POS system — it is a complete restaurant operations platform built with real business needs in mind.
